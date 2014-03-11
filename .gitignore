@@ -1,0 +1,11 @@
+/bin
+/build
+/.idea
+build.properties
+versions.properties
+.settings
+.classpath
+.project
+*.ipr
+*.iml
+*.iws

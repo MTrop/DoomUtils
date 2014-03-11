@@ -1,0 +1,22 @@
+..............................................................................
+[RUNNING THIS PROGRAM]
+
+This version of Texture Spy requires four libraries:
+
+Black Rook Commons
+Black Rook Commons I/O
+Black Rook Commons Lang
+Black Rook Doom Struct
+
+All downloadable at:
+http://blackrooksoftware.com/downloads.htm 
+
+Be sure that you have Java installed (or its binaries are on your PATH), and
+have the required libraries in your CLASSPATH, and then type:
+
+java -jar mtrop-utils-texspy.jar
+
+If you do not have all of the libraries in a CLASSPATH environment variable,
+then you will have to type:
+
+java -cp [PATH TO JARS HERE] -jar mtrop-utils-texspy.jar

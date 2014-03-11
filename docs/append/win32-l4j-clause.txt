@@ -1,0 +1,3 @@
+This program requires Java to run. If do not have Java installed,
+it will send you to a web page to install it.
+

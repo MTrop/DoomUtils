@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE project>
+<project name="utility" default="release.utils">
+	
+	<import file="build-import.xml" />
+
+	<property name="l4jxml.dir" value="launch4j" />
+
+	<property name="txt.dir" value="${build.dir}/txt" />
+	<property name="win32.dir" value="${build.dir}/win32" />
+
+	<property name="launch4j.lib.dir" value="${dev.base}/lib/launch4j" />
+	<property name="launch4j.lib.jar" value="${launch4j.lib.dir}/launch4j.jar" />
+	<property name="launch4j.xstream.lib.jar" value="${launch4j.lib.dir}/lib/xstream.jar" />
+
+	<property name="utility.name" value="utility" />
+	<property name="utility.exeversion" value="9.9.9.9" />
+	<property name="utility.version" value="${build.date}-${utility.exeversion}" />
+	<property name="utility.package" value="net.mtrop.utility.doom.${utility.name}" />
+	<property name="utility.package.path" value="net/mtrop/utility/doom/${utility.name}" />
+
+	<property name="utility.win32.filename" value="${utility.name}.exe" />
+	<property name="utility.win32.xml.filename" value="${l4jxml.dir}/${utility.name}.xml" />
+	<property name="utility.jar.filename" value="${project.archive}-${utility.name}.jar" />
+	<property name="utility.jar.one.filename" value="${project.archive}-${utility.name}-standalone.jar" />
+	<property name="utility.zip.filename" value="${project.archive}-${utility.name}-${utility.version}.zip" />
+	<property name="utility.zip.one.filename" value="${project.archive}-${utility.name}-standalone-${utility.version}.zip" />
+	<property name="utility.zip.src.filename" value="${project.archive}-${utility.name}-src-${utility.version}.zip" />
+	<property name="utility.zip.win32.l4j.filename" value="${project.archive}-${utility.name}-win32-l4j-${utility.version}.zip" />
+		
+	<property name="zip.win32.filename" value="${project.archive}-${build.version}-win32-l4j.zip" />
+
+	<!-- Taskdefs -->
+
+	<taskdef 
+		name="launch4j"
+		classname="net.sf.launch4j.ant.Launch4jTask"
+		classpath="${launch4j.lib.jar}${S}${launch4j.xstream.lib.jar}"
+	/>
+	
+	<!-- Utility Targets -->
+	
+	<target name="clean.win32" description="Cleans up the Launch4J executables.">
+		<delete dir="${win32.dir}" includeemptydirs="true" casesensitive="false" /> 
+	</target>
+
+	<target name="init.win32" depends="clean.win32" description="Initializes the Launch4J executable folders.">
+		<mkdir dir="${win32.dir}" />
+	</target>
+
+	<target name="clean.txt" description="Cleans up the Launch4J executables.">
+		<delete dir="${txt.dir}" includeemptydirs="true" casesensitive="false" /> 
+	</target>
+
+	<target name="init.txt" depends="clean.txt" description="Initializes the Launch4J executable folders.">
+		<mkdir dir="${txt.dir}" />
+	</target>
+
+	<target name="utility.jar" depends="init.jar, compile" description="Jars up all classes in utility.">
+		<delete file="${jar.dir}/${utility.jar.filename}" casesensitive="false" />
+		<jar destfile="${jar.dir}/${utility.jar.filename}">
+			<manifest>
+		    	<attribute name="Main-Class" value="${utility.package}.Main"/>
+            </manifest>
+			<fileset dir="${bin.dir}" includes="${utility.package.path}/*" />
+		</jar>
+	</target>
+
+	<target name="utility.jar.one" depends="utility.jar" description="Jars up all classes needed to run utility in one standalone JAR.">
+		<jar destfile="${jar.dir}/${utility.jar.one.filename}" update="true">
+			<manifest>
+		    	<attribute name="Main-Class" value="${utility.package}.Main"/>
+            </manifest>
+			<fileset dir="${common.lib}" includes="**/*.*" />
+			<fileset dir="${common.io.lib}" includes="**/*.*" />
+			<fileset dir="${common.lang.lib}" includes="**/*.*" />
+			<fileset dir="${doom.lib}" includes="**/*.*" />
+			<fileset dir="${utility.lib}" includes="**/*.*" />
+			<fileset dir="${bin.dir}" includes="${utility.package.path}/*" />
+		</jar>
+	</target>
+	
+	<target name="utility.jar.all" depends="utility.jar.one" />
+
+	<target name="utility.win32.l4j" depends="init.win32, utility.jar.one" description="Creates the Launch4J executable for utility.">
+		<delete file="${win32.l4j.dir}/${utility.win32.filename}" />
+		<launch4j 
+			configFile="${utility.win32.xml.filename}" 
+			jar="${jar.dir}/${utility.jar.one.filename}"
+			outfile="${win32.dir}/${utility.win32.filename}"
+			fileVersion="${utility.exeversion}" 
+			txtFileVersion="${utility.exeversion}" 
+			productVersion="${utility.exeversion}" 
+			txtProductVersion="${utility.exeversion}"
+		/>
+	</target>
+	
+	<target name="utility.zip.src" depends="init.txt, init.zip" description="Zips up utility source code.">
+		<delete file="${zip.dir}/${utility.zip.src.filename}" casesensitive="false" />
+		
+		<delete file="${txt.dir}/utility.txt" />
+		<copy file="docs/${utility.name}/utility.txt" tofile="${txt.dir}/${utility.name}.txt" />
+		<concat append="true" destfile="${txt.dir}/${utility.name}.txt" >
+			<filelist dir="docs/append" files="copyright-jar.txt" />
+			<filelist dir="docs/append" files="copyright-footer.txt" />
+		</concat>
+		
+		<zip destfile="${zip.dir}/${utility.zip.src.filename}">
+			<zipfileset dir="${src.dir}" includes="${utility.package.path}/*" prefix="src/" />
+		</zip>
+		<zip destfile="${zip.dir}/${utility.zip.src.filename}" update="true">
+			<zipfileset dir="${txt.dir}" includes="${utility.name}.txt" prefix="docs/" />
+		</zip>
+		<zip destfile="${zip.dir}/${utility.zip.src.filename}" update="true">
+			<zipfileset dir="${basedir}/docs/all" includes="blackrook-license.txt" prefix="docs/" />
+		</zip>
+	</target>
+	
+	<target name="utility.zip.jar.one" depends="init.txt, init.zip, utility.jar.one" description="Zips up utility All-in-one JAR.">
+		<delete file="${zip.dir}/${utility.zip.one.filename}" casesensitive="false" />
+
+		<delete file="${txt.dir}/${utility.name}.txt" />
+		<copy file="docs/${utility.name}/utility.txt" tofile="${txt.dir}/${utility.name}.txt" />
+		<concat append="true" destfile="${txt.dir}/${utility.name}.txt" >
+			<filelist dir="docs/${utility.name}" files="jar-one.txt" />
+			<filelist dir="docs/append" files="copyright-one.txt" />
+			<filelist dir="docs/append" files="copyright-footer.txt" />
+		</concat>
+		
+		<zip destfile="${zip.dir}/${utility.zip.one.filename}">
+			<fileset file="${jar.dir}/${utility.jar.one.filename}" />
+		</zip>
+		<zip destfile="${zip.dir}/${utility.zip.one.filename}" update="true">
+			<zipfileset dir="${txt.dir}" includes="${utility.name}.txt" prefix="docs/" />
+		</zip>
+		<zip destfile="${zip.dir}/${utility.zip.one.filename}" update="true">
+			<zipfileset dir="${basedir}/docs/all" includes="*.txt" prefix="docs/" />
+		</zip>
+	</target>
+	
+	<target name="utility.zip.win32.l4j" depends="init.txt, init.zip, utility.win32.l4j" description="Zips up utility Win32 Launch4J EXE.">
+		<delete file="${zip.dir}/${utility.zip.win32.l4j.filename}" casesensitive="false" />
+
+		<delete file="${txt.dir}/${utility.name}.txt" />
+		<copy file="docs/${utility.name}/utility.txt" tofile="${txt.dir}/${utility.name}.txt" />
+		<concat append="true" destfile="${txt.dir}/${utility.name}.txt" >
+			<filelist dir="docs/${utility.name}" files="win32.txt" />
+			<filelist dir="docs/append" files="win32-l4j-clause.txt" />
+			<filelist dir="docs/append" files="copyright-one.txt" />
+			<filelist dir="docs/append" files="copyright-footer.txt" />
+		</concat>
+		
+		<zip destfile="${zip.dir}/${utility.zip.win32.l4j.filename}">
+			<fileset file="${win32.dir}/${utility.win32.filename}" />
+		</zip>
+		<zip destfile="${zip.dir}/${utility.zip.win32.l4j.filename}" update="true">
+			<zipfileset dir="${txt.dir}" includes="${utility.name}.txt" prefix="docs/" />
+		</zip>
+		<zip destfile="${zip.dir}/${utility.zip.win32.l4j.filename}" update="true">
+			<zipfileset dir="${basedir}/docs/all" includes="*.txt" prefix="docs/" />
+		</zip>
+	</target>
+	
+	<!-- Utility Properties -->
+	
+	<target name="zip.utils" depends="
+		utility.zip.src, 
+		utility.zip.jar.one, 
+		utility.zip.win32.l4j 
+		" />
+	
+	<target name="jar.utils" depends="
+		compile, 
+		utility.jar, 
+		utility.jar.one 
+		">
+	</target>
+
+	<target name="release.utils" depends="
+		jar.utils,
+		zip.utils
+		">
+	</target>
+
+</project>

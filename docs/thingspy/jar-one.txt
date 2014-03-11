@@ -1,0 +1,8 @@
+..............................................................................
+[RUNNING THIS PROGRAM]
+
+Be sure that you have Java installed (or its binaries are on your PATH), and
+then type:
+
+java -jar mtrop-utils-thingspy-standalone.jar
+

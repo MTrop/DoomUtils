@@ -1,0 +1,39 @@
+WADSort by Matt Tropiano
+http://mtrop.net
+==============================================================================
+[INTRO]
+
+WADSort is a utility that sorts the entries in a Doom WAD, such as grouping 
+known lump types together and alphabetizing lumps in namespaces.
+
+Lumps in a WAD are sorted in the following order:
+
+- Globals
+- Text Globals
+- Demos
+- PLAYPAL/COLORMAP/TINTTAB
+- Colormap Namespace
+- ACS Library Namespace
+- Maps
+- TEXTURES/PNAMES Set
+- Sounds
+- Music
+- Global Graphics
+- Voice Namespace
+- Sprite Namespace
+- Patch Namespace
+- Flat Namespace 
+- Texture Namespace 
+- Hi-res Namespace 
+- Voxel Namespace 
+
+This program re-arranges lumps IRREVERSIBLY. If you are unsure about the
+arrangement of the lumps in the source WAD and whether this utility will sort
+it properly, back it up yourself, or use the "-backup" switch. 
+
+..............................................................................
+[CHANGELOG]
+
+0.9
+	First BETA Release
+

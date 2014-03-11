@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE project>
+<!-- ====================================================================== 
+     Doom Utilities Build File   
+     Matt Tropiano                                                                
+     ====================================================================== -->
+<project name="build" default="release">
+
+	<description>Doom Utilities</description>
+
+	<property file="build.properties" />
+	<property file="versions.properties" />
+
+	<!-- Versioning -->
+
+	<property name="demospy.exe.version" value="9.9.9.9" />
+	<property name="doommerge.exe.version" value="9.9.9.9" />
+	<property name="demospy.exe.version" value="9.9.9.9" />
+	<property name="doomsnd.exe.version" value="9.9.9.9" />
+	<property name="mapcount.exe.version" value="9.9.9.9" />
+	<property name="mapswap.exe.version" value="9.9.9.9" />
+	<property name="texspy.exe.version" value="9.9.9.9" />
+	<property name="thingspy.exe.version" value="9.9.9.9" />
+	<property name="wadsort.exe.version" value="9.9.9.9" />
+	
+	<!-- Dependencies -->
+	<property name="dev.base" value=".." />
+	<property name="build.base" value="build" />
+	<property name="S" value="${path.separator}" />
+
+	<!-- Project Libs -->
+	<property name="common.lib" value="${dev.base}/Common/bin" />
+	<property name="common.io.lib" value="${dev.base}/CommonIO/bin"/>
+	<property name="common.lang.lib" value="${dev.base}/CommonLang/bin"/>
+	<property name="doom.lib" value="${dev.base}/Doom/bin"/>
+	<property name="utility.lib" value="${dev.base}/Utility/bin"/>
+
+	<!-- Project Info -->
+	<property name="project.archive" value="mtrop-utils" />
+	<property name="project.javadoc.title" value="" />
+	<property name="project.classpath" value="${common.lib}${S}${common.io.lib}${S}${common.lang.lib}${S}${doom.lib}${S}${utility.lib}" />
+	<property name="project.javadoc.packages" value="" />
+
+	<target name="clean.build">
+		<delete dir="${build.base}" includeemptydirs="true" casesensitive="false" /> 
+	</target>
+	
+	<target name="project.demospy" depends="clean.build">
+		<ant antfile="build-utility.xml" dir="." inheritAll="true" target="release.utils">
+			<property name="build.dir" value="${build.base}/demospy" />
+			<property name="utility.name" value="demospy" />
+			<property name="utility.exeversion" value="${demospy.exe.version}" />
+		</ant>
+	</target>
+
+	<target name="project.doommerge" depends="clean.build">
+		<ant antfile="build-utility.xml" dir="." inheritAll="true" target="release.utils">
+			<property name="build.dir" value="${build.base}/doommerge" />
+			<property name="utility.name" value="doommerge" />
+			<property name="utility.exeversion" value="${doommerge.exe.version}" />
+		</ant>
+	</target>
+
+	<target name="project.doomsnd" depends="clean.build">
+		<ant antfile="build-utility.xml" dir="." inheritAll="true" target="release.utils">
+			<property name="build.dir" value="${build.base}/doomsnd" />
+			<property name="utility.name" value="doomsnd" />
+			<property name="utility.exeversion" value="${doomsnd.exe.version}" />
+		</ant>
+	</target>
+
+	<target name="project.mapcount" depends="clean.build">
+		<ant antfile="build-utility.xml" dir="." inheritAll="true" target="release.utils">
+			<property name="build.dir" value="${build.base}/mapcount" />
+			<property name="utility.name" value="mapcount" />
+			<property name="utility.exeversion" value="${mapcount.exe.version}" />
+		</ant>
+	</target>
+
+	<target name="project.mapswap" depends="clean.build">
+		<ant antfile="build-utility.xml" dir="." inheritAll="true" target="release.utils">
+			<property name="build.dir" value="${build.base}/mapswap" />
+			<property name="utility.name" value="mapswap" />
+			<property name="utility.exeversion" value="${mapswap.exe.version}" />
+		</ant>
+	</target>
+
+	<target name="project.texspy" depends="clean.build">
+		<ant antfile="build-utility.xml" dir="." inheritAll="true" target="release.utils">
+			<property name="build.dir" value="${build.base}/texspy" />
+			<property name="utility.name" value="texspy" />
+			<property name="utility.exeversion" value="${texspy.exe.version}" />
+		</ant>
+	</target>
+
+	<target name="project.textract" depends="clean.build">
+		<ant antfile="build-utility.xml" dir="." inheritAll="true" target="release.utils">
+			<property name="build.dir" value="${build.base}/textract" />
+			<property name="utility.name" value="textract" />
+			<property name="utility.exeversion" value="${textract.exe.version}" />
+		</ant>
+	</target>
+
+	<target name="project.thingspy" depends="clean.build">
+		<ant antfile="build-utility.xml" dir="." inheritAll="true" target="release.utils">
+			<property name="build.dir" value="${build.base}/thingspy" />
+			<property name="utility.name" value="thingspy" />
+			<property name="utility.exeversion" value="${thingspy.exe.version}" />
+		</ant>
+	</target>
+
+	<target name="project.wadsort" depends="clean.build">
+		<ant antfile="build-utility.xml" dir="." inheritAll="true" target="release.utils">
+			<property name="build.dir" value="${build.base}/wadsort" />
+			<property name="utility.name" value="wadsort" />
+			<property name="utility.exeversion" value="${wadsort.exe.version}" />
+		</ant>
+	</target>
+
+	<target name="release" depends="
+		project.demospy, 
+		project.doommerge, 
+		project.doomsnd, 
+		project.mapcount, 
+		project.mapswap, 
+		project.texspy, 
+		project.textract, 
+		project.thingspy, 
+		project.wadsort
+		">
+	</target>
+
+</project>

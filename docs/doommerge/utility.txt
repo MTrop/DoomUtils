@@ -1,0 +1,88 @@
+Doom Merge by Matt Tropiano
+http://mtrop.net
+==============================================================================
+[INTRO]
+
+Doom Merge is a utility that can script the merging of several Doom WADs 
+together into one (or many) WADs. It reads commands entered through STDIN
+until it hits the end of the script, either via the "END" command or the
+EOF character (Ctrl-Z on Windows, Ctrl-D on Linux/Unix/OSX).
+
+..............................................................................
+[CHANGELOG]
+
+1.0
+	First full release.
+
+0.9
+	First BETA Release
+
+..............................................................................
+[HOW TO USE]
+
+Upon execution, Doom Merge will accept a series of commands via STDIN that 
+dictate what you want it to do. You can either type each one in, pressing 
+ENTER after each line, or feed it a list of newline-terminated commands via 
+command-line operators (pipe "|" or STDIN redirect "<"). The commands 
+manipulate a context, so be sure you test before you use! 
+
+Each entered line parsed unless it begins with a "#" character (for comments).
+Blank lines are ignored as well. Commands are case-insensitive. Arguments 
+are delimited by spaces, so if you want to put a space in an argument, you
+will need to enclose it in double-quotes. 
+
+Command       Arguments      Description
+-------       ---------      -----------
+
+echo          [ANY]          Prints a newline-appended message to STDOUT. It 
+                             can take any number of arguments.
+                             
+end                          Ends script interpretation.
+
+clearout                     Clears the output WAD buffer.
+
+load          path           Loads an existing WAD into the output buffer in 
+                             memory, and replaces the output buffer with its 
+                             contents.
+
+in            path           Adds a file to the list of files to merge into 
+                             the output buffer when "MERGE" is called. The 
+                             files are merged in the order that they were 
+                             added via this command. This does NOT put
+                             anything in the output buffer when this is 
+                             called. 
+
+clearin                      Clears all files in the list manipulated by "in".
+
+save          path           Saves the current contents of the output buffer
+                             to the wad at <path>. If <path> already exists,
+                             it is OVERWRITTEN! 
+
+marker        name           Adds an empty marker entry to the output buffer.
+                             The name of the entry is <name>, and is coerced
+                             to a valid entry name if it isn't valid.
+
+merge                        Merges all WAD data in the files in the input
+                             list into the output buffer. Note that this does
+                             NOT automatically save anything, nor does it 
+                             clear the input list! 
+
+..............................................................................
+[EXAMPLE]
+
+An example script would look like this:
+
+in "graphics.wad"
+in "maps/map01.wad"
+in "maps/map02.wad"
+merge
+save "out.wad"
+end
+
+The above script would add graphics.wad, maps/map01.wad, and maps/map02.wad to
+the input list, merge them into the output buffer, save the output buffer to
+"out.wad", then terminate.
+
+After the script runs, you should have a file called "out.wad" that contains
+the contents of graphics.wad, maps/map01.wad, and maps/map02.wad.
+

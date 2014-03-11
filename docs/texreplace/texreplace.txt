@@ -1,0 +1,39 @@
+TEXREPLACE by Matt Tropiano
+
+A Java-based command-line utility  that takes a wad file, an "out" wad file 
+location, and a lump name.
+
+The lump name and "out" file are optional - the "out" file defaults to 
+"out.wad" unless specified, and the lump will be the first map lump found 
+unless specified.
+
+The list of replacement entries are to be specified via standard in, so you 
+can either type them in line by line at the prompt, or feed it a textfile via 
+standard in redirect.
+
+For example, the command line could look like:
+
+    texreplace in.wad out.wad E1M1 < entries.txt
+
+The contents of the script would take these commands:
+
+textures - start texture entries.
+flats    - start flat entries.
+end      - stop reading input (must be present, or it will wait for additional input).
+
+Each entry should be in pairs of TEXTURE1, TEXTURE2.
+
+An example file would be:
+
+	textures
+	midbars3 railing
+	firelav2 firelava
+	zimmer1 zimmer2
+	flats
+	ceil5_2 f_sky1
+	grass1 grass2
+	fwater1 blood1
+	end
+
+Any line that is blank or starts with a "#" is skipped.
+ 

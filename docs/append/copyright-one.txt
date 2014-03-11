@@ -1,0 +1,23 @@
+..............................................................................
+[COPYRIGHT]
+
+This program is made available under the terms of the GNU Lesser Public 
+License v2.1 which accompanies this distribution, and is available at:
+http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+
+This program contains code from these projects:
+
+Black Rook Commons
+Black Rook Commons I/O
+Black Rook Commons Lang
+Black Rook Doom Struct
+Black Rook Utility
+
+All downloadable at:
+http://blackrooksoftware.com/downloads.htm
+
+A copy of the permissive license of the libraries included inside this utility 
+should be included in this release as "LICENSE.txt". If it was not, 
+please contact me for a copy, or to notify me of a distribution that has not 
+included one.
+

@@ -1,0 +1,114 @@
+TEXtract by Matt Tropiano
+http://mtrop.net
+==============================================================================
+[INTRO]
+
+TEXtract is a utility that extracts a list of textures from a set of WAD 
+files and puts them in another WAD file. It will extract what is on the 
+provided list, as well as attempt to pull textures that it knows are parts of
+animated textures and switches, and if it can't find those, it will attempt
+to pull an ANIMATED or SWITCHES lump to get that information.
+
+It will extract TEXTUREx, PNAMES, patches, flats between F_ or FF_ markers 
+and textures between TX_ markers in WAD files. Nothing else.
+
+The list for what to extract is read from STDIN. The list may be terminated
+with "-end" or the EOF character (Ctrl-Z on Windows, Ctrl-D on Linux/Unix/
+OSX).
+
+..............................................................................
+[CHANGELOG]
+
+0.9.6BETA
+	Fixed a NullPointer which would occur if the source texture resource WAD 
+		did not contain a set of TEXTUREx/PNAMES lumps. How embarassing.
+	Added reminder message to error message on a bad input list parse.
+	Special thanks to DoomWorld user plums!
+		
+0.9.5BETA
+	Fixed a bug where it wouldn't detect namespace boundaries if they were
+		the first entry in a WAD file. Whoops. Greater OR EQUAL, Matt...
+
+0.9.4BETA
+	Added an optional "-owrite" switch for forcing overwrite of the target 
+		output WAD.
+
+0.9.3BETA
+	Put "BETA" in the version to make it a proper "beta".
+	If a WAD wasn't found (and can't be created), this would just end. Now it 
+		outputs an error message.
+	In some cases, TEXtract would not export the data correctly. Now it does.
+
+0.9.2.1
+	Minor change in source code.
+
+0.9.2
+	Changed ordering of how lumps are written to output wads.
+	Made sure that textures are written back in alphabetical order - not
+		doing that may break animations, maybe not, but I'm a tad anal about 
+		it anyway.
+	ANIMATED now exports correctly (more correctly than before).
+	Fixed internal animation table.
+	
+0.9.1
+	Fixed issue where textures that used multiples of the same patch would 
+		duplicate patch entries in the output.
+
+0.9
+	First BETA Release
+
+..............................................................................
+[HOW TO USE]
+
+Upon execution, TEXtract does the following:
+
+1. Read and catalogue the textures and flats that it finds in each input wad,
+   including the base WAD specified by the "-base" switch (which is 
+   mandatory).
+
+2. Reads a list from STDIN of all textures and flats to extract until it hits 
+   the "-end" marker (or EOF). Textures are started with "-texture", flats
+   with "-flat".
+   
+	Example:
+	
+	-TEXTURE
+	ADEL_B15
+	ADEL_D11
+	ADEL_D15
+	ADEL_G01
+	ADEL_M07
+	ADEL_Q05
+	ADEL_Q60
+	ADEL_RR2
+	-FLAT
+	A-DAN1
+	A-DAN3
+	ADEL_F47
+	ADEL_F67
+	ADEL_F71
+	ADEL_F72
+	ADEL_F75
+	ADEL_F76
+	ADEL_F80
+	ADEL_F81
+	ADEL_F82
+	-END
+
+   All lines in the list are interpreted case-insensitively. "BLOOD1" is the 
+   same as "blood1". 
+
+3. Copies the TEXTUREx and PNAMES lump from the base WAD into the output WAD
+   (the file after "-o" on the command line) and then looks through the 
+   provided WAD files for replaced and new textures/flats to put in the new
+   or existing WAD.
+   
+   WARNING: Multiple uses of an existing WAD for dumping textures may not be
+   desirable, due to the way it is extracted and dumped to it. It may be
+   easier to dump to a new wad, then merge it in with another WAD. It may be
+   safer to output to a new wad plus using the -owrite switch.
+   
+   Texture precedence is defined by the order of the WADs provided, and
+   TEXTUREx lumps before TX_ namespaces. If one patch is replaced in a 
+   texture that exists in the base, the whole texture is replaced.
+

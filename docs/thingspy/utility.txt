@@ -1,0 +1,33 @@
+Thing Spy by Matt Tropiano
+http://mtrop.net
+==============================================================================
+[INTRO]
+
+Thing Spy is a utility that lists the things, by editor number/type, in Doom 
+Maps. It supports all map types for inspection, including UDMF. 
+
+If it finds the same map lump in multiple WADs, they will be aggregated 
+together, so be careful if you blindly run it on a set of random WADs, 
+especially if you are looking for certain results. 
+
+The output list is dumped to STDOUT, so it can be redirected.
+
+..............................................................................
+[CHANGELOG]
+
+1.1.1
+	Updated source code to conform to a change in the main Doom Library.
+
+1.1
+	Searches inside ZIPs for PK3s.
+
+1.0
+	First full release.
+
+0.9.1
+	Code: Probably a good idea to not call the context "TextureSpyContext."
+		Laziness strikes again!
+
+0.9
+	First BETA Release
+

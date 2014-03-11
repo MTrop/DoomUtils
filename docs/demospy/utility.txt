@@ -1,0 +1,17 @@
+DemoSpy by Matt Tropiano
+http://mtrop.net
+==============================================================================
+[INTRO]
+
+DemoSpy is a utility that lists data about DEMO files - automated play of
+Doom-engine games.
+
+..............................................................................
+[CHANGELOG]
+
+1.0
+	First full release.
+
+0.9
+	First BETA Release
+

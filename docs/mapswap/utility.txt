@@ -1,0 +1,19 @@
+MapSwap by Matt Tropiano
+http://mtrop.net
+==============================================================================
+[INTRO]
+
+MapSwap is a utility that changes the headers of a map to another map. If
+another map exists in the WAD that has the same name as the target, the
+two maps will be swapped.
+
+This utility also changes the corresponding Intermission Title graphics and
+music that is associated with them, but only if it is a known Doom or Doom 2
+map slot. This behavior can be ignored with associated switches.
+
+..............................................................................
+[CHANGELOG]
+
+0.9
+	First BETA Release
+

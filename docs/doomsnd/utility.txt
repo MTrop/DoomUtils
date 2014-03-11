@@ -1,0 +1,17 @@
+Doom Sound Converter by Matt Tropiano
+http://mtrop.net
+==============================================================================
+[INTRO]
+
+DoomSND is a utility that converts LPCM WAV (most WAV files) to Doom Sound
+format clips (DMX Format).
+
+The files that it converts are output in the same directory that the input 
+file was found. It has the capability of converting several sounds at once.
+
+..............................................................................
+[CHANGELOG]
+
+0.9
+	First BETA Release
+

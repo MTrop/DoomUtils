@@ -1,0 +1,35 @@
+Texture Spy by Matt Tropiano
+http://mtrop.net
+==============================================================================
+[INTRO]
+
+Texture Spy is a utility that lists the names of used textures in Doom Maps.
+It supports all map types for inspection, including UDMF. 
+
+This aggregates the list of textures/flats across maps and WADs, and does NOT 
+split by map. It will attempt to detect skies associated with known maps. 
+
+The list is dumped to STDOUT, so it can be redirected or piped to another
+process.
+
+..............................................................................
+[CHANGELOG]
+
+1.0.1
+	Updated source code to conform to a change in the main Doom Library.
+
+1.0
+	First full release.
+	Fixed some inaccuracies in the text file (this file). 
+
+0.9.8
+	Searches inside ZIPs for PK3s.
+
+0.9.6
+	Added ability to figure out map skies.
+	Added support for dumping a list of textures so that TEXtract (another
+	  program) can read it.
+
+0.9
+	First BETA Release
+

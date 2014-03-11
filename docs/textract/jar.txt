@@ -1,0 +1,22 @@
+..............................................................................
+[RUNNING THIS PROGRAM]
+
+This version of TEXtract requires four libraries:
+
+Black Rook Commons 2.11.0
+Black Rook Commons I/O 2.3.0
+Black Rook Commons Lang 2.2.0
+Black Rook Doom Struct 2.7.0
+
+All downloadable at:
+http://blackrooksoftware.com/downloads.htm 
+
+Be sure that you have Java installed (or its binaries are on your PATH), and
+have the required libraries in your CLASSPATH, and then type:
+
+java -jar mtrop-utils-textract.jar
+
+If you do not have all of the libraries in a CLASSPATH environment variable,
+then you will have to type:
+
+java -cp [PATH TO JARS HERE] -jar mtrop-utils-textract.jar

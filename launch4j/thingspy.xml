@@ -1,0 +1,36 @@
+<launch4jConfig>
+  <dontWrapJar>false</dontWrapJar>
+  <headerType>console</headerType>
+  <jar>SEE BUILD</jar>
+  <outfile>SEE BUILD</outfile>
+  <errTitle>ERROR</errTitle>
+  <cmdLine></cmdLine>
+  <chdir></chdir>
+  <priority>normal</priority>
+  <downloadUrl>https://www.java.com/en/download/index.jsp</downloadUrl>
+  <supportUrl>http://mtrop.net</supportUrl>
+  <customProcName>false</customProcName>
+  <stayAlive>false</stayAlive>
+  <manifest></manifest>
+  <icon></icon>
+  <jre>
+    <path></path>
+    <minVersion>1.6.0</minVersion>
+    <maxVersion></maxVersion>
+    <jdkPreference>preferJre</jdkPreference>
+    <initialHeapSize>16</initialHeapSize>
+    <maxHeapSize>96</maxHeapSize>
+  </jre>
+  <versionInfo>
+    <copyright>Matt Tropiano 2013</copyright>
+    <fileVersion>0.0.0.0</fileVersion>
+    <txtFileVersion>0.0</txtFileVersion>
+    <productVersion>0.0.0.0</productVersion>
+    <txtProductVersion>0.0</txtProductVersion>
+    <productName>ThingSpy</productName>
+    <fileDescription>ThingSpy</fileDescription>
+    <companyName>Matt Tropiano</companyName>
+    <internalName>thingspy</internalName>
+    <originalFilename>thingspy.exe</originalFilename>
+  </versionInfo>
+</launch4jConfig>

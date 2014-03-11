@@ -1,0 +1,23 @@
+MapCount by Matt Tropiano
+http://mtrop.net
+==============================================================================
+[INTRO]
+
+MapCount is a utility that counts how many maps are inside a WAD file, 
+contained either in a ZIP file or otherwise.
+
+Each type of total is printed on lines with different prefixes, which makes 
+it easy to GREP or FIND the subtotals you care about.
+
+Totals are prefixed with "[TOTAL]", WADs/PK3s with "[WAD]", Files with 
+"[FILE]".
+
+..............................................................................
+[CHANGELOG]
+
+1.0
+	First full release.
+
+0.9
+	First BETA Release
+
