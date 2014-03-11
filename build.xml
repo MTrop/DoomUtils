@@ -20,6 +20,7 @@
 	<property name="mapcount.exe.version" value="9.9.9.9" />
 	<property name="mapswap.exe.version" value="9.9.9.9" />
 	<property name="texspy.exe.version" value="9.9.9.9" />
+	<property name="textract.exe.version" value="9.9.9.9" />
 	<property name="thingspy.exe.version" value="9.9.9.9" />
 	<property name="wadsort.exe.version" value="9.9.9.9" />
 	
