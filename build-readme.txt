@@ -2,7 +2,7 @@
 Building this Project
 Matt Tropiano's Doom Utilities
 (C) 2013-2014
-http://www.blackrooksoftware.com
+http://mtrop.net
 ==============================================================================
 
 This project is built via Apache Ant. You'll need to download Ant from here:
