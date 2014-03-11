@@ -1,12 +1,13 @@
 ..............................................................................
 [RUNNING THIS PROGRAM]
 
-This version of WADSort requires four libraries:
+This version of WADSort requires five libraries:
 
 Black Rook Commons
 Black Rook Commons I/O
 Black Rook Commons Lang
 Black Rook Doom Struct
+Black Rook Utility
 
 All downloadable at:
 http://blackrooksoftware.com/downloads.htm 
