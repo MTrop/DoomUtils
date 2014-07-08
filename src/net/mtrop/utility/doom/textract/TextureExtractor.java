@@ -10,6 +10,7 @@ package net.mtrop.utility.doom.textract;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.regex.Pattern;
 
@@ -39,7 +40,7 @@ import com.blackrook.utility.Version;
  */
 public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 {
-	private static final Version VERSION = new Version(0,9,6,0,"BETA");
+	private static final Version VERSION = new Version(0,9,7,0,"BETA");
 
 	private static final Pattern PATCH_MARKER = Pattern.compile("P[0-9]*_(START|END)");
 	private static final Pattern FLAT_MARKER = Pattern.compile("F[0-9]*_(START|END)");
@@ -56,6 +57,8 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 	public static final String SETTING_NOSWITCHES = "noswitches";
 	/** Overwrite target WAD. */
 	public static final String SETTING_OVERWRITE = "overwrite";
+	/** Null texture name. */
+	public static final String SETTING_NULLTEXTURE = "nulltex";
 	
 	/** Switch: Source IWAD. */
 	public static final String SWITCH_BASE = "-base";
@@ -63,11 +66,51 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 	public static final String SWITCH_OUTPUT = "-o";
 	/** Switch: Overwrite output file. */
 	public static final String SWITCH_OVERWRITE = "-owrite";
+	/** Switch: Null texture name. */
+	public static final String SWITCH_NULLTEX = "-nulltex";
 	/** Switch: No animations. */
 	public static final String SWITCH_NOANIMATED = "-noanim";
 	/** Switch: No switches. */
 	public static final String SWITCH_NOSWITCH = "-noswit";
 
+	/**
+	 * Comparator class for Null Texture name. 
+	 */
+	public static class NullComparator implements Comparator<Texture>
+	{
+		/** Null texture set. */
+		private static final CaseInsensitiveHash NULL_NAMES = new CaseInsensitiveHash(){{
+			put("AASTINKY");
+			put("AASHITTY");
+			put("BADPATCH");
+			put("ABADONE");
+		}};
+		
+		private String nullName;
+		
+		private NullComparator(String nullName)
+		{
+			this.nullName = nullName;
+		}
+		
+		@Override
+		public int compare(Texture o1, Texture o2)
+		{
+			if (nullName == null)
+			{
+				return 
+					NULL_NAMES.contains(o1.getName()) ? -1 :
+					NULL_NAMES.contains(o2.getName()) ? 1 :
+					o1.compareTo(o2);
+			}
+			else return 
+					o1.getName().equalsIgnoreCase(nullName) ? -1 :
+					o2.getName().equalsIgnoreCase(nullName) ? 1 :
+					o1.compareTo(o2);
+		}
+		
+	}
+	
 	/**
 	 * Context.
 	 */
@@ -86,6 +129,9 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 		private WadUnit baseUnit;
 		/** WAD priority queue. */
 		private Queue<WadUnit> wadPriority;
+
+		/** Null comparator. */
+		private NullComparator nullComparator;
 		
 		/** No animated. */
 		private boolean noAnimated;
@@ -102,6 +148,7 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 			flatList = new CaseInsensitiveHash();
 			baseUnit = null;
 			wadPriority = new Queue<WadUnit>();
+			nullComparator = new NullComparator(null);
 			noAnimated = false;
 			noSwitches = false;
 			overwrite = false;
@@ -217,6 +264,7 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 		final int STATE_INIT = 0;
 		final int STATE_BASE = 1;
 		final int STATE_OUT = 2;
+		final int STATE_NULLTEX = 3;
 		
 		int state = STATE_INIT;
 		for (String a : args)
@@ -229,6 +277,11 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 			else if (a.equalsIgnoreCase(SWITCH_OUTPUT))
 			{
 				state = STATE_OUT;
+				continue;
+			}
+			else if (a.equalsIgnoreCase(SWITCH_NULLTEX))
+			{
+				state = STATE_NULLTEX;
 				continue;
 			}
 			else if (a.equalsIgnoreCase(SWITCH_NOANIMATED))
@@ -257,6 +310,9 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 					break;
 				case STATE_OUT:
 					out.put(SETTING_OUTFILE, a);
+					break;
+				case STATE_NULLTEX:
+					out.put(SETTING_NULLTEXTURE, a);
 					break;
 				default:
 					files.add(a);
@@ -297,15 +353,15 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 		}
 		
 		out.println("    Scanning patch entries...");
-		if (!scanNamespace("p", PATCH_MARKER, unit, wf, unit.patchIndices))
+		if (!scanNamespace("p", "pp", PATCH_MARKER, unit, wf, unit.patchIndices))
 			return false;
-		if (!scanNamespace("pp", null, unit, wf, unit.patchIndices))
+		if (!scanNamespace("pp", "p", null, unit, wf, unit.patchIndices))
 			return false;
 		out.printf("        %d patches.\n", unit.patchIndices.size());
 		out.println("    Scanning flat entries...");
-		if (!scanNamespace("f", FLAT_MARKER, unit, wf, unit.flatIndices))
+		if (!scanNamespace("f", "ff", FLAT_MARKER, unit, wf, unit.flatIndices))
 			return false;
-		if (!scanNamespace("ff", null, unit, wf, unit.flatIndices))
+		if (!scanNamespace("ff", "f", null, unit, wf, unit.flatIndices))
 			return false;
 		out.printf("        %d flats.\n", unit.flatIndices.size());
 		out.println("    Scanning texture namespace entries...");
@@ -470,11 +526,20 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 	// Scans namespace entries.
 	private boolean scanNamespace(String name, Pattern ignorePattern, WadUnit unit, WadFile wf, CaseInsensitiveHashMap<Integer> map)
 	{
+		return scanNamespace(name, null, ignorePattern, unit, wf, map);
+	}
+	
+	// Scans namespace entries.
+	private boolean scanNamespace(String name, String equivName, Pattern ignorePattern, WadUnit unit, WadFile wf, CaseInsensitiveHashMap<Integer> map)
+	{
 		// scan patch namespace
 		int start = wf.getIndexOf(name+"_start");
 		if (start >= 0)
 		{
 			int end = wf.getIndexOf(name+"_end");
+			if (end < 0)
+				end = wf.getIndexOf(equivName+"_end");
+			
 			if (end >= 0)
 			{
 				for (int i = start + 1; i < end; i++)
@@ -790,7 +855,7 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 	private boolean dumpToOutputWad(ExtractorContext context, ExportSet exportSet, WadFile wf) throws IOException
 	{
 		out.println("Sorting entries...");
-		exportSet.textureSet.sort();
+		exportSet.textureSet.sort(context.nullComparator);
 		exportSet.patchData.sort();
 		exportSet.flatData.sort();
 		exportSet.textureData.sort();
@@ -948,28 +1013,31 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 	{
 		out.printf("TEXtract v%s by Matt Tropiano\n", getVersion());
 		out.println("Usage: textract [file] -base [base] -o [output] [switches]");
-		out.println("    [file]    :         A valid WAD file (that contains the textures to ");
-		out.println("                        extract). Accepts wildcards for multiple WAD files.");
+		out.println("    [file]    :          A valid WAD file (that contains the textures to ");
+		out.println("                         extract). Accepts wildcards for multiple WAD files.");
 		out.println();
-		out.println("    [base]    :         The WAD file to use for reference for extraction.");
-		out.println("                        Any texture resources found in this file are NOT");
-		out.println("                        extracted, except for the TEXTUREx and PNAMES lumps");
-		out.println("                        to use as a base. (Usually an IWAD)");
+		out.println("    [base]    :          The WAD file to use for reference for extraction.");
+		out.println("                         Any texture resources found in this file are NOT");
+		out.println("                         extracted, except for the TEXTUREx and PNAMES lumps");
+		out.println("                         to use as a base. (Usually an IWAD)");
 		out.println();
-		out.println("    [output]  :         The output WAD file. If it exists, the target's");
-		out.println("                        TEXTUREx and PNAMES lumps are overwritten, and the");
-		out.println("                        extracted contents are APPENDED to it.");
+		out.println("    [output]  :          The output WAD file. If it exists, the target's");
+		out.println("                         TEXTUREx and PNAMES lumps are overwritten, and the");
+		out.println("                         extracted contents are APPENDED to it.");
 		out.println();
-		out.println("    [switches]: -noanim If specified, do not include other textures in");
-		out.println("                        a texture's animation sequence, and ignore ANIMATED");
-		out.println("                        lumps.");
+		out.println("    [switches]: -noanim  If specified, do not include other textures in");
+		out.println("                         a texture's animation sequence, and ignore ANIMATED");
+		out.println("                         lumps.");
 		out.println();
-		out.println("                -noswit If specified, do not include other textures in");
-		out.println("                        a texture's switch sequence, and ignore SWITCHES");
-		out.println("                        lumps.");
+		out.println("                -noswit  If specified, do not include other textures in");
+		out.println("                         a texture's switch sequence, and ignore SWITCHES");
+		out.println("                         lumps.");
 		out.println();
-		out.println("                -owrite If specified, it will overwrite the contents of the");
-		out.println("                        output WAD (by default, it appends them).");
+		out.println("                -owrite  If specified, it will overwrite the contents of the");
+		out.println("                         output WAD (by default, it appends them).");
+		out.println();
+		out.println("                -nulltex If specified, the next argument is the null");
+		out.println("                         texture that is always sorted first.");
 	}
 	
 	@Override
@@ -1007,6 +1075,7 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 		context.noAnimated = settings.getBoolean(SETTING_NOANIMATED);
 		context.noSwitches = settings.getBoolean(SETTING_NOSWITCHES);
 		context.overwrite = settings.getBoolean(SETTING_OVERWRITE);
+		context.nullComparator = new NullComparator(settings.getString(SETTING_NULLTEXTURE));
 		
 		/* STEP 1 : Scan all incoming WADs so we know where crap is. */
 		
@@ -1033,6 +1102,9 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 		
 		/* STEP 3 : Extract the junk and put it in the output wad. */
 
+		if (context.nullComparator.nullName != null)
+			out.println("Using "+ context.nullComparator.nullName.toUpperCase() + " as the null texture in TEXTURE1...");
+		
 		if (!extractToOutputWad(context))
 			return 1;
 		

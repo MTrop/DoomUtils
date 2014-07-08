@@ -19,6 +19,12 @@ OSX).
 ..............................................................................
 [CHANGELOG]
 
+0.9.7BETA
+	Asymmetrical lump markers used to denote flats and patches are now 
+		detectable.
+	Known "Null" textures will always sort first in TEXTURE1, unless the
+		-nulltex switch is specified with a specific name. 
+		
 0.9.6BETA
 	Fixed a NullPointer which would occur if the source texture resource WAD 
 		did not contain a set of TEXTUREx/PNAMES lumps. How embarassing.
