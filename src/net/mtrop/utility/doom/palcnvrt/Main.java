@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  ******************************************************************************/
-package net.mtrop.utility.doom.paletteconvert;
+package net.mtrop.utility.doom.palcnvrt;
 
 /**
  * Utility for converting graphic palettes to another palette.

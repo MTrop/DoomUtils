@@ -1,7 +1,8 @@
-package net.mtrop.utility.doom.paletteconvert;
+package net.mtrop.utility.doom.palcnvrt;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;
@@ -13,6 +14,8 @@ import com.blackrook.doom.DoomPK3;
 import com.blackrook.doom.DoomWad;
 import com.blackrook.doom.WadException;
 import com.blackrook.doom.WadFile;
+import com.blackrook.doom.struct.Flat;
+import com.blackrook.doom.struct.Patch;
 import com.blackrook.utility.Context;
 import com.blackrook.utility.Settings;
 import com.blackrook.utility.Utility;
@@ -90,6 +93,9 @@ public class PaletteConvert extends Utility<PaletteConvert.PSContext>
 		int state = 0;
 		
 		List<String> inputFileList = new List<String>(25);
+		
+		// default mode
+		settings.put(SETTING_GRAPHICMODE, SETTING_GRAPHICMODE_PATCHES);
 		
 		for (String arg : args)
 		{
@@ -278,7 +284,12 @@ public class PaletteConvert extends Utility<PaletteConvert.PSContext>
 		
 		if (Common.isEmpty(settings.getString(source ? SETTING_PALETTE_SOURCE : SETTING_PALETTE_TARGET)))
 		{
-			out.println("ERROR: Must specify a palette source (raw file or WAD/PK3).");
+			out.printf("ERROR: Must specify a palette %s (raw file or WAD/PK3).\n", srcstr);
+			return 1;
+		}
+		else if (Common.isEmpty(settings.getString(source ? SETTING_COLORMAP_SOURCE : SETTING_COLORMAP_TARGET)))
+		{
+			out.printf("ERROR: Must specify a palette %s (raw file or WAD/PK3).\n", srcstr);
 			return 1;
 		}
 		else
@@ -399,6 +410,165 @@ public class PaletteConvert extends Utility<PaletteConvert.PSContext>
 		}
 	}
 	
+	/** Process the patch file. */
+	private void processPatchFile(PSContext context, File f)
+	{
+		Patch inPatch = new Patch();
+	
+		FileInputStream fis = null;
+		try {
+			fis = new FileInputStream(f);
+			inPatch.readDoomBytes(fis);
+		} catch (IOException e) {
+			out.printf("\rERROR: Trouble reading %s. %s: %s\n", f.getName(), e.getClass().getSimpleName(), e.getLocalizedMessage());
+		} finally {
+			Common.close(fis);
+		}
+		
+		for (int w = 0; w < inPatch.getWidth(); w++)
+			for (int h = 0; h < inPatch.getHeight(); h++)
+			{
+				int index = inPatch.getPixel(w, h);
+				// only care if the pixel is not translucent.
+				if (index != Patch.PIXEL_TRANSLUCENT)
+				{
+					byte[] color = context.sourcePalette[index];
+					int argb = 
+						(0x0ff << 24)					//a 
+						| ((0x0ff & color[0]) << 16)	//r
+						| ((0x0ff & color[1]) << 8)		//g
+						| ((0x0ff & color[2]))			//b
+						;
+					inPatch.setPixel(w, h, matchColor(argb, context.targetPalette, context.targetBrightmask, context.sourceBrightmask[index], true));
+				}
+			}
+		
+		FileOutputStream fos = null;
+		try {
+			fos = new FileOutputStream(f);
+			inPatch.writeDoomBytes(fos);
+		} catch (IOException e) {
+			out.printf("\rERROR: Trouble reading %s. %s: %s\n", f.getName(), e.getClass().getSimpleName(), e.getLocalizedMessage());
+		} finally {
+			Common.close(fos);
+		}
+	}
+
+	/** Process the flat file. */
+	private void processFlatFile(PSContext context, File f)
+	{
+		long len = f.length();
+		Flat inFlat = new Flat((int)len, 1);
+	
+		FileInputStream fis = null;
+		try {
+			fis = new FileInputStream(f);
+			inFlat.readDoomBytes(fis);
+		} catch (IOException e) {
+			out.printf("\rERROR: Trouble reading %s. %s: %s\n", f.getName(), e.getClass().getSimpleName(), e.getLocalizedMessage());
+			return;
+		} finally {
+			Common.close(fis);
+		}
+		
+		for (int w = 0; w < inFlat.getWidth(); w++)
+			for (int h = 0; h < inFlat.getHeight(); h++)
+			{
+				int index = inFlat.getPixel(w, h);
+				// only care if the pixel is not translucent.
+				if (index != Patch.PIXEL_TRANSLUCENT)
+				{
+					byte[] color = context.sourcePalette[index];
+					int argb = 
+						(0x0ff << 24)					//a 
+						| ((0x0ff & color[0]) << 16)	//r
+						| ((0x0ff & color[1]) << 8)		//g
+						| ((0x0ff & color[2]))			//b
+						;
+					inFlat.setPixel(w, h, matchColor(argb, context.targetPalette, context.targetBrightmask, context.sourceBrightmask[index], true));
+				}
+			}
+		
+		FileOutputStream fos = null;
+		try {
+			fos = new FileOutputStream(f);
+			inFlat.writeDoomBytes(fos);
+		} catch (IOException e) {
+			out.printf("\rERROR: Trouble reading %s. %s: %s\n", f.getName(), e.getClass().getSimpleName(), e.getLocalizedMessage());
+			return;
+		} finally {
+			Common.close(fos);
+		}
+	}
+
+	/**
+	 * Returns the "closest" color in a palette for matching.
+	 * Uses Euclidian distance. 
+	 * @param argbIn input color in 0xAARRGGBB
+	 * @param palette the input palette bytes [256]x[3]
+	 * @param brightmask bright pixel mask.
+	 * @param brightbit considering bright colors?
+	 * @param isPatch true, is patch, false, is flat. patch = ignore color 255 always. flat = ignore color 0 always.
+	 * @return the closest matching index.
+	 */
+	private int matchColor(int argbIn, byte[][] palette, boolean[] brightmask, boolean brightbit, boolean isPatch)
+	{
+		double bestdist = Double.MAX_VALUE;
+		int best = -1;
+		double r0 = (double)((argbIn & 0x00ff0000) >> 16);
+		double g0 = (double)((argbIn & 0x0000ff00) >> 8);
+		double b0 = (double)(argbIn & 0x000000ff);
+		
+		for (int i = 0; i < 256; i++)
+		{
+			if ((!isPatch && i == 0) && (isPatch && i == 255))
+				continue;
+			if (brightmask[i] != brightbit)
+				continue;
+			
+			double r1 = (double)(+palette[i][0] & 0x0ff);
+			double g1 = (double)(+palette[i][1] & 0x0ff);
+			double b1 = (double)(+palette[i][2] & 0x0ff);
+			double dist = Math.sqrt((r1 - r0)*(r1 - r0) + (g1 - g0)*(g1 - g0) + (b1 - b0)*(b1 - b0));
+			
+			if (dist < bestdist)
+			{
+				bestdist = dist;
+				best = i;
+				if (bestdist == 0.0)
+					return best;
+			}
+		}
+		
+		return best;
+	}
+	
+	/** Converts the list of graphics. */
+	private int convertGraphics(PSContext context, Settings settings)
+	{
+		boolean patch = settings.getString(SETTING_GRAPHICMODE).equals(SETTING_GRAPHICMODE_PATCHES);
+		String[] filePaths = (String[])settings.get(SETTING_FILES);
+		int plen = filePaths.length;
+		int count = 0;
+
+		do {
+			
+			File f = new File(filePaths[count]);
+			out.printf("\r[%3d%%] Converting %s...", (count * 100 / plen), f.getName());
+
+			if (!f.exists())
+				out.printf("\rERROR: File %s does not exist! Skipping.\n", f.getPath());
+			else if (patch)
+				processPatchFile(context, f);
+			else // flat
+				processFlatFile(context, f);
+			
+		} while (++count < plen);
+
+		out.printf("\r[100%%] DONE!                                                              \n");
+		return 0;
+	}
+
 	/** Prints the usage blurb. */
 	private void printUsage()
 	{
@@ -448,11 +618,17 @@ public class PaletteConvert extends Utility<PaletteConvert.PSContext>
 
 		/* Step 1: Read palette info files. */
 		
+		out.println("Getting palette info...");
 		if ((err = readInfo(context, true, settings)) > 0)
 			return err;
 		if ((err = readInfo(context, false, settings)) > 0)
 			return err;
-		
+
+		/* Step 2: Process graphics. */
+
+		out.println("Processing graphics...");
+		if ((err = convertGraphics(context, settings)) > 0)
+			return err;
 		
 		return 0;
 	}

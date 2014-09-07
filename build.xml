@@ -19,6 +19,7 @@
 	<property name="doomsnd.exe.version" value="9.9.9.9" />
 	<property name="mapcount.exe.version" value="9.9.9.9" />
 	<property name="mapswap.exe.version" value="9.9.9.9" />
+	<property name="palcnvrt.exe.version" value="9.9.9.9" />
 	<property name="texspy.exe.version" value="9.9.9.9" />
 	<property name="textract.exe.version" value="9.9.9.9" />
 	<property name="thingspy.exe.version" value="9.9.9.9" />
@@ -118,12 +119,21 @@
 		</ant>
 	</target>
 
+	<target name="project.palcnvrt" depends="clean.build">
+		<ant antfile="build-utility.xml" dir="." inheritAll="true" target="release.utils">
+			<property name="build.dir" value="${build.base}/palcnvrt" />
+			<property name="utility.name" value="palcnvrt" />
+			<property name="utility.exeversion" value="${palcnvrt.exe.version}" />
+		</ant>
+	</target>
+
 	<target name="release" depends="
 		project.demospy, 
 		project.doommerge, 
 		project.doomsnd, 
 		project.mapcount, 
 		project.mapswap, 
+		project.palcnvrt, 
 		project.texspy, 
 		project.textract, 
 		project.thingspy, 

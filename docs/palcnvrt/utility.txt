@@ -1,0 +1,13 @@
+Palette Convert by Matt Tropiano
+http://mtrop.net
+==============================================================================
+[INTRO]
+
+Palette Convert
+
+..............................................................................
+[CHANGELOG]
+
+0.9
+	First BETA Release
+

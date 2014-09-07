@@ -1,0 +1,6 @@
+..............................................................................
+[RUNNING THIS PROGRAM]
+
+Running Palette Convert is easy. Just execute it as you would any other
+command-line program by typing it at the command prompt.
+

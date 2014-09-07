@@ -39,14 +39,14 @@ public class DemoSpy extends Utility<DemoSpy.DemoSpyContext>
 		"HMP",
 		"UV",
 		"NM",
-};
+	};
 	
 	private static final String[] SR_NAMES = new String[]{
 		"",
 		"SR40",
 		"SR50",
 		"STROLL",
-};	
+	};	
 
 	private static final int SR_BEHAVIOR_NONE = 	0;
 	private static final int SR_BEHAVIOR_40 = 		1;
