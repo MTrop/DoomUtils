@@ -3,7 +3,9 @@ http://mtrop.net
 ==============================================================================
 [INTRO]
 
-Palette Convert
+Palette Convert converts existing Doom graphics to another palette. It is
+mindful of the use of fullbright pixels in a colormap and will convert such 
+graphics with analogous colors.
 
 ..............................................................................
 [CHANGELOG]
@@ -11,3 +13,19 @@ Palette Convert
 0.9
 	First BETA Release
 
+..............................................................................
+[HOW TO USE]
+
+In order to do its job, this program needs a source palette and colormap and
+a destination palette and colormap, and a bunch of files to convert.
+
+The "-srcpal" and "-srcmap" arguments will open a single source file for a raw
+palette file (at least 768 bytes, R G B x 256) and a raw colormap file (at
+least 8192 bytes, 256 palette indices x 32). The "-srcwad" switch assumes that
+the file provided (must be WAD or PK3) contains both. 
+
+The "-trg..." switches work the same way, except they assign the target 
+resources, instead of the sources.
+
+By default, patch/graphic format is assumed. The flat format can be read by
+using the "-flats" switch.  

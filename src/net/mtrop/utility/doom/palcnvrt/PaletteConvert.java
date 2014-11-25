@@ -578,26 +578,20 @@ public class PaletteConvert extends Utility<PaletteConvert.PSContext>
 		out.println("                       for multiple files.");
 		out.println();
 		out.println("    [type]   : -patch  If specified, all input files are graphic/patch format.");
-		out.println();
 		out.println("               -flat   If specified, all input files are flat format.");
-		out.println();
 		out.println("                       If neither are specified, assumes patch.");
 		out.println();
 		out.println("    [srcargs]: -srcpal If specified, next argument is palette source");
 		out.println("                       raw file.");
-		out.println();
 		out.println("               -srcmap If specified, next argument is colormap source");
 		out.println("                       raw file.");
-		out.println();
 		out.println("               -srcwad If specified, next argument is palette and colormap");
 		out.println("                       source WAD/PK3.");
 		out.println();
 		out.println("    [trgargs]: -trgpal If specified, next argument is palette target");
 		out.println("                       raw file.");
-		out.println();
 		out.println("               -trgmap If specified, next argument is colormap target");
 		out.println("                       raw file.");
-		out.println();
 		out.println("               -trgwad If specified, next argument is palette and colormap");
 		out.println("                       target WAD/PK3.");
 	}
