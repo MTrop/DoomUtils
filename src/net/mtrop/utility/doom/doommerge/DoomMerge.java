@@ -7,10 +7,14 @@
  ******************************************************************************/
 package net.mtrop.utility.doom.doommerge;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Arrays;
 
+import com.blackrook.commons.Common;
 import com.blackrook.commons.list.List;
 import com.blackrook.doom.DoomWadEntry;
 import com.blackrook.doom.WadBuffer;
@@ -29,7 +33,7 @@ import com.blackrook.utility.Version;
  */
 public class DoomMerge extends Utility<DoomMerge.MergeContext>
 {
-	private static final Version VERSION = new Version(1,0,0,0);
+	private static final Version VERSION = new Version(1,1,0,0);
 	
 	/**
 	 * Program context.
@@ -212,13 +216,45 @@ public class DoomMerge extends Utility<DoomMerge.MergeContext>
 				try {
 					for (File f : context.inputFiles)
 					{
-						WadFile wad = new WadFile(f);
-						for (int i = 0; i < wad.getSize(); i++)
+						if (f.isDirectory())
 						{
-							DoomWadEntry entry = wad.getEntry(i);
-							context.outWad.add(entry.getName(), wad.getData(entry));
+							File[] files = f.listFiles();
+							Arrays.sort(files);
+							
+							for (File dirfile : files)
+							{
+								if (dirfile.getName().startsWith(".") || dirfile.isHidden() || dirfile.isDirectory())
+									continue;
+								
+								String entryName = dirfile.getName().toUpperCase();
+								int extIndex = entryName.lastIndexOf('.');
+								entryName = extIndex >= 0 
+									? entryName.substring(0, Math.min(8, extIndex)) 
+									: entryName.substring(0, Math.min(8, entryName.length()));
+								
+								ByteArrayOutputStream bos = new ByteArrayOutputStream();
+								FileInputStream fis = null;
+								try {
+									fis = new FileInputStream(dirfile);
+									Common.relay(fis, bos);
+								} catch (IOException e) {
+									context.out.println("ERROR: Cannot import directory file "+dirfile.getPath());
+								} finally {
+									Common.close(fis);
+								}
+								context.outWad.add(entryName, bos.toByteArray());
+							}
 						}
-						wad.close();
+						else
+						{
+							WadFile wad = new WadFile(f);
+							for (int i = 0; i < wad.getSize(); i++)
+							{
+								DoomWadEntry entry = wad.getEntry(i);
+								context.outWad.add(entry.getName(), wad.getData(entry));
+							}
+							wad.close();
+						}
 					}
 				} catch (IOException e) {
 					context.out.printf("ERROR: %s: %s", e.getClass().getName(), e.getLocalizedMessage());

@@ -11,6 +11,9 @@ EOF character (Ctrl-Z on Windows, Ctrl-D on Linux/Unix/OSX).
 ..............................................................................
 [CHANGELOG]
 
+1.1
+	Added support for directories on IN commands.
+
 1.0
 	First full release.
 
@@ -51,6 +54,10 @@ in            path           Adds a file to the list of files to merge into
                              added via this command. This does NOT put
                              anything in the output buffer when this is 
                              called. 
+                             As of 1.1, this accepts directories, and a MERGE
+                             will add the files in it as-is to the output WAD.
+                             Ignores hidden files (and files prefixed with ".")
+                             and directories.
 
 clearin                      Clears all files in the list manipulated by "in".
 

@@ -43,7 +43,7 @@ import com.blackrook.utility.Version;
  */
 public class ThingSpy extends Utility<ThingSpy.ThingSpyContext>
 {
-	private static final Version VERSION = new Version(1,1,1,0);
+	private static final Version VERSION = new Version(1,1,2,0);
 
 	/** File path. */
 	public static final String SETTING_FILES = "files";
@@ -120,7 +120,6 @@ public class ThingSpy extends Utility<ThingSpy.ThingSpyContext>
 			else if (a.equalsIgnoreCase(SWITCH_NOMSG))
 			{
 				out.put(SETTING_NOMESSAGES, true);
-				searchState = false;
 			}
 			else if (searchState)
 			{

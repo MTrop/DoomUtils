@@ -15,6 +15,9 @@ The output list is dumped to STDOUT, so it can be redirected.
 ..............................................................................
 [CHANGELOG]
 
+1.1.2
+	Fixed: If the -nomsg switch is used, search mode is disabled. Not anymore!
+
 1.1.1
 	Updated source code to conform to a change in the main Doom Library.
 
