@@ -17,20 +17,25 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
+import net.mtrop.doom.Wad;
+import net.mtrop.doom.WadBuffer;
+import net.mtrop.doom.WadFile;
+import net.mtrop.doom.enums.MapFormat;
+import net.mtrop.doom.exception.WadException;
+import net.mtrop.doom.map.binary.DoomSector;
+import net.mtrop.doom.map.binary.DoomSidedef;
+import net.mtrop.doom.map.udmf.UDMFCommonSectorAttributes;
+import net.mtrop.doom.map.udmf.UDMFCommonSidedefAttributes;
+import net.mtrop.doom.map.udmf.UDMFObject;
+import net.mtrop.doom.map.udmf.UDMFReader;
+import net.mtrop.doom.map.udmf.UDMFTable;
+import net.mtrop.doom.util.MapUtils;
+import net.mtrop.doom.util.NameUtils;
+
 import com.blackrook.commons.Common;
 import com.blackrook.commons.list.List;
 import com.blackrook.commons.list.SortedList;
 import com.blackrook.commons.math.Pair;
-import com.blackrook.doom.DoomMap;
-import com.blackrook.doom.DoomWad;
-import com.blackrook.doom.WadBuffer;
-import com.blackrook.doom.WadException;
-import com.blackrook.doom.WadFile;
-import com.blackrook.doom.DoomMap.Format;
-import com.blackrook.doom.struct.Sector;
-import com.blackrook.doom.struct.Sidedef;
-import com.blackrook.doom.udmf.UDMFTable;
-import com.blackrook.doom.udmf.namespace.UDMFNamespace;
 import com.blackrook.utility.Context;
 import com.blackrook.utility.Settings;
 import com.blackrook.utility.Utility;
@@ -222,11 +227,11 @@ public class TextureSpy extends Utility<TextureSpy.TextureSpyContext>
 	}
 	
 	// Inspect WAD contents.
-	private void inspectWAD(TextureSpyContext context, DoomWad wad) throws IOException
+	private void inspectWAD(TextureSpyContext context, Wad wad) throws IOException
 	{
-		String[] mapHeaders = DoomMap.getAllMapEntries(wad);
+		String[] mapHeaders = MapUtils.getAllMapHeaders(wad);
 		for (String mapName : mapHeaders)
-			inpectMap(context, wad, mapName);
+			inspectMap(context, wad, mapName);
 	}
 
 	/**
@@ -251,41 +256,58 @@ public class TextureSpy extends Utility<TextureSpy.TextureSpyContext>
 	}
 	
 	// Inspect a map in a WAD.
-	private void inpectMap(TextureSpyContext context, DoomWad wad, String mapName) throws IOException
+	private void inspectMap(TextureSpyContext context, Wad wad, String mapName) throws IOException
 	{
 		if (!context.nomessage)
 			out.println(context.tcomment() + "    Opening map "+mapName+"...");
 		
-		DoomMap.Format type = DoomMap.detectFormat(wad, mapName);
+		MapFormat format = MapUtils.getMapFormat(wad, mapName);
+		
+		if (format == null)
+		{
+			out.println(context.tcomment() + "    ERROR: NOT A MAP!");
+			return;
+		}
 
 		if (!context.nomessage)
-			out.println(context.tcomment() + "    Format is "+type.name()+"...");
+			out.println(context.tcomment() + "    Format is "+format.name()+"...");
 
-		UDMFTable table = null;
-		UDMFNamespace namespace = null;
-
-		if (type == Format.UDMF)
+		// filled in if UDMF.
+		UDMFTable udmf = null;
+		
+		if (format == MapFormat.UDMF)
 		{
-			table = DoomMap.readUDMFTable(wad.getData("textmap", wad.getIndexOf(mapName)));
-			namespace = DoomMap.readUDMFNamespace(table);
+			InputStream in = wad.getInputStream("TEXTMAP", wad.getLastIndexOf(mapName));
+			udmf = UDMFReader.readData(in);
+			Common.close(in);
 		}
-			
+				
 		if (context.outputTextures)
 		{
 			if (!context.nomessage)
 				out.println(context.tcomment() + "        Reading SIDEDEFS...");
 
-			List<Sidedef> sidedefs = null;
-			switch (type)
+			switch (format)
 			{
-				case UDMF:
-					sidedefs = DoomMap.readUDMFSidedefs(namespace, table);
-					break;
 				default:
-					sidedefs = DoomMap.readSidedefLump(wad.getData("sidedefs", wad.getIndexOf(mapName)));
-					break;
+				case DOOM:
+				case HEXEN:
+				case STRIFE:
+				{
+					byte[] in = wad.getData("SIDEDEFS", wad.getLastIndexOf(mapName));
+					DoomSidedef[] sidedefs = DoomSidedef.create(in, in.length / DoomSidedef.LENGTH);
+					inspectSidedefs(context, sidedefs);
+				}
+				break;
+
+				case UDMF:
+				{
+					inspectSidedefs(context, udmf.getObjects("sidedef"));
+				}
+				break;
+					
 			}
-			inspectSidedefs(context, sidedefs);
+
 		}
 
 		if (context.outputFlats)
@@ -293,17 +315,26 @@ public class TextureSpy extends Utility<TextureSpy.TextureSpyContext>
 			if (!context.nomessage)
 				out.println(context.tcomment() + "        Reading SECTORS...");
 
-			List<Sector> sectors = null;
-			switch (type)
+			switch (format)
 			{
-				case UDMF:
-					sectors = DoomMap.readUDMFSectors(namespace, table);
-					break;
 				default:
-					sectors = DoomMap.readSectorLump(wad.getData("sectors", wad.getIndexOf(mapName)));
-					break;
+				case DOOM:
+				case HEXEN:
+				case STRIFE:
+				{
+					byte[] in = wad.getData("SECTORS", wad.getLastIndexOf(mapName));
+					DoomSector[] sectors = DoomSector.create(in, in.length / DoomSector.LENGTH);
+					inspectSectors(context, sectors);
+				}
+				break;
+
+				case UDMF:
+				{
+					inspectSectors(context, udmf.getObjects("sector"));
+				}
+				break;
+					
 			}
-			inspectSectors(context, sectors);
 		}
 		
 		if (!context.noskies)
@@ -365,35 +396,56 @@ public class TextureSpy extends Utility<TextureSpy.TextureSpyContext>
 	}
 	
 	// Adds sidedef textures to the list.
-	private void inspectSidedefs(TextureSpyContext context, List<Sidedef> sidedefs)
+	private void inspectSidedefs(TextureSpyContext context, DoomSidedef[] sidedefs)
 	{
-		for (Sidedef s : sidedefs)
+		for (DoomSidedef s : sidedefs)
 		{
-			addTexture(context, s.getUpperTexture());
-			addTexture(context, s.getMiddleTexture());
-			addTexture(context, s.getLowerTexture());
+			addTexture(context, s.getTextureTop());
+			addTexture(context, s.getTextureMiddle());
+			addTexture(context, s.getTextureBottom());
 		}
 	}
 	
-	private void addTexture(TextureSpyContext context, String texture)
+	// Adds sidedef textures to the list.
+	private void inspectSidedefs(TextureSpyContext context, UDMFObject[] sidedefs)
 	{
-		if (!context.textureList.contains(texture))
-			context.textureList.add(texture);
+		for (UDMFObject s : sidedefs)
+		{
+			addTexture(context, s.getString(UDMFCommonSidedefAttributes.ATTRIB_TEXTURE_TOP, NameUtils.EMPTY_TEXTURE_NAME));
+			addTexture(context, s.getString(UDMFCommonSidedefAttributes.ATTRIB_TEXTURE_MIDDLE, NameUtils.EMPTY_TEXTURE_NAME));
+			addTexture(context, s.getString(UDMFCommonSidedefAttributes.ATTRIB_TEXTURE_BOTTOM, NameUtils.EMPTY_TEXTURE_NAME));
+		}
 	}
-
+	
 	// Adds sector textures to the list.
-	private void inspectSectors(TextureSpyContext context, List<Sector> sectors)
+	private void inspectSectors(TextureSpyContext context, DoomSector[] sectors)
 	{
-		for (Sector s : sectors)
+		for (DoomSector s : sectors)
 		{
 			addFlat(context, s.getFloorTexture());
 			addFlat(context, s.getCeilingTexture());
 		}
 	}
 	
+	// Adds sector textures to the list.
+	private void inspectSectors(TextureSpyContext context, UDMFObject[] sectors)
+	{
+		for (UDMFObject s : sectors)
+		{
+			addFlat(context, s.getString(UDMFCommonSectorAttributes.ATTRIB_TEXTURE_FLOOR));
+			addFlat(context, s.getString(UDMFCommonSectorAttributes.ATTRIB_TEXTURE_CEILING));
+		}
+	}
+	
+	private void addTexture(TextureSpyContext context, String texture)
+	{
+		if (!context.textureList.contains(texture) && !Common.isEmpty(texture))
+			context.textureList.add(texture);
+	}
+
 	private void addFlat(TextureSpyContext context, String texture)
 	{
-		if (!context.flatList.contains(texture))
+		if (!context.flatList.contains(texture) && !Common.isEmpty(texture))
 			context.flatList.add(texture);
 	}
 	
@@ -463,7 +515,7 @@ public class TextureSpy extends Utility<TextureSpy.TextureSpyContext>
 			out.println("-TEXTURE");
 		for (String s : context.textureList)
 		{
-			if (!s.equalsIgnoreCase(Sidedef.BLANK_TEXTURE) && s.length() > 0)
+			if (!s.equalsIgnoreCase(NameUtils.EMPTY_TEXTURE_NAME) && s.length() > 0)
 				out.println(s.toUpperCase());
 		}
 
@@ -472,7 +524,7 @@ public class TextureSpy extends Utility<TextureSpy.TextureSpyContext>
 			out.println("-FLAT");
 		for (String s : context.flatList)
 		{
-			if (!s.equalsIgnoreCase(Sidedef.BLANK_TEXTURE) && s.length() > 0)
+			if (!s.equalsIgnoreCase(NameUtils.EMPTY_TEXTURE_NAME) && s.length() > 0)
 				out.println(s.toUpperCase());
 		}
 		

@@ -11,9 +11,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import net.mtrop.doom.struct.DMXSound;
+
 import com.blackrook.commons.Common;
 import com.blackrook.commons.list.List;
-import com.blackrook.doom.struct.SoundData;
 import com.blackrook.io.files.SoundFileInfo;
 import com.blackrook.io.files.wav.WAVFile;
 import com.blackrook.utility.Context;
@@ -130,13 +131,13 @@ public class SoundConvert extends Utility<SoundConvert.SoundContext>
 	}
 	
 	// Writes to a new file.
-	private boolean writeOutputFile(SoundData data, String path)
+	private boolean writeOutputFile(DMXSound data, String path)
 	{
 		File f = new File(path);
 		FileOutputStream fos = null;
 		try {
 			fos = new FileOutputStream(f);
-			data.writeDoomBytes(fos);
+			data.writeBytes(fos);
 		} catch (SecurityException e) {
 			out.printf("ERROR: Couldn't write sound file \"%s\". Access denied.\n", path);
 			return false;
@@ -183,7 +184,7 @@ public class SoundConvert extends Utility<SoundConvert.SoundContext>
 				double[] samples = readSamples(f, wav);
 				if (samples != null)
 				{
-					SoundData sd = new SoundData(wav.getSoundInfo().getSampleRate(), samples);
+					DMXSound sd = new DMXSound(wav.getSoundInfo().getSampleRate(), samples);
 					if (writeOutputFile(sd, getNewFileName(f)))
 						successfulOnce = true;
 				}

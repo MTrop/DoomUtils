@@ -14,17 +14,18 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.regex.Pattern;
 
+import net.mtrop.doom.WadEntry;
+import net.mtrop.doom.WadFile;
+import net.mtrop.doom.exception.WadException;
+import net.mtrop.doom.map.DoomMap;
+import net.mtrop.doom.util.MapUtils;
+
 import com.blackrook.commons.Common;
 import com.blackrook.commons.ObjectPair;
 import com.blackrook.commons.hash.CaseInsensitiveHashMap;
 import com.blackrook.commons.hash.Hash;
 import com.blackrook.commons.hash.HashMap;
 import com.blackrook.commons.list.List;
-import com.blackrook.doom.DoomMap;
-import com.blackrook.doom.DoomWadEntry;
-import com.blackrook.doom.WadException;
-import com.blackrook.doom.WadFile;
-import com.blackrook.doom.util.DoomUtil;
 import com.blackrook.utility.Context;
 import com.blackrook.utility.Settings;
 import com.blackrook.utility.Utility;
@@ -105,13 +106,13 @@ public class WadSorter extends Utility<WadSorter.SorterContext>
 	 */
 	protected static class SorterContext implements Context
 	{
-		HashMap<Category, List<DoomWadEntry>> outMap;
-		HashMap<String, DoomWadEntry[]> mapList;
+		HashMap<Category, List<WadEntry>> outMap;
+		HashMap<String, WadEntry[]> mapList;
 		
 		private SorterContext()
 		{
-			outMap = new HashMap<Category, List<DoomWadEntry>>();
-			mapList = new HashMap<String, DoomWadEntry[]>();
+			outMap = new HashMap<Category, List<WadEntry>>();
+			mapList = new HashMap<String, WadEntry[]>();
 		}
 	}
 
@@ -179,7 +180,7 @@ public class WadSorter extends Utility<WadSorter.SorterContext>
 	/**
 	 * Categorizes an entry.
 	 */
-	private Category categorizeEntry(DoomWadEntry entry)
+	private Category categorizeEntry(WadEntry entry)
 	{
 		String entryName = entry.getName();
 		
@@ -223,7 +224,7 @@ public class WadSorter extends Utility<WadSorter.SorterContext>
 	 * Checks if an entry is a namespace start.
 	 * If so, returns a category.
 	 */
-	private Category isNamespaceStart(DoomWadEntry entry)
+	private Category isNamespaceStart(WadEntry entry)
 	{
 		String entryName = entry.getName();
 		if (entryName.endsWith("_START"))
@@ -236,7 +237,7 @@ public class WadSorter extends Utility<WadSorter.SorterContext>
 	 * Checks if an entry is a namespace end.
 	 * If so, returns true.
 	 */
-	private boolean isNamespaceEnd(DoomWadEntry entry, String namespacePrefix)
+	private boolean isNamespaceEnd(WadEntry entry, String namespacePrefix)
 	{
 		String ename = entry.getName();
 		return ename.startsWith(namespacePrefix) && ename.endsWith("_END");
@@ -248,7 +249,7 @@ public class WadSorter extends Utility<WadSorter.SorterContext>
 	 */
 	private void scanEntries(SorterContext context, WadFile wf)
 	{
-		int[] mapIndicies = DoomMap.getAllMapIndices(wf);
+		int[] mapIndicies = MapUtils.getAllMapIndices(wf);
 		Hash<Integer> mapIndexHash = new Hash<Integer>();
 		for (int m : mapIndicies)
 			mapIndexHash.put(m);
@@ -259,7 +260,7 @@ public class WadSorter extends Utility<WadSorter.SorterContext>
 		
 		for (int i = 0; i < wf.getSize(); i++)
 		{
-			DoomWadEntry entry = wf.getEntry(i);
+			WadEntry entry = wf.getEntry(i);
 
 			if (currentNamespaceCategory != null)
 			{
@@ -277,9 +278,9 @@ public class WadSorter extends Utility<WadSorter.SorterContext>
 			else if (mapIndexHash.contains(i))
 			{
 				String mapName = entry.getName();
-				int len = DoomMap.getMapContentIndices(wf, mapName);
+				int len = MapUtils.getMapEntryCount(wf, mapName);
 				
-				DoomWadEntry[] mapentries = new DoomWadEntry[len];
+				WadEntry[] mapentries = new WadEntry[len];
 				
 				for (int n = 0; n < len; n++)
 					mapentries[n] = wf.getEntry(n + i);
@@ -308,15 +309,15 @@ public class WadSorter extends Utility<WadSorter.SorterContext>
 	 */
 	private void sortEntries(SorterContext context, WadFile wf)
 	{
-		Comparator<DoomWadEntry> entryComparator = new Comparator<DoomWadEntry>()
+		Comparator<WadEntry> entryComparator = new Comparator<WadEntry>()
 		{
-			public int compare(DoomWadEntry o1, DoomWadEntry o2)
+			public int compare(WadEntry o1, WadEntry o2)
 			{
 				return o1.getName().compareTo(o2.getName());
 			};
 		};
 		
-		for (ObjectPair<Category, List<DoomWadEntry>> pair : context.outMap)
+		for (ObjectPair<Category, List<WadEntry>> pair : context.outMap)
 			pair.getValue().sort(entryComparator);
 	}
 
@@ -327,11 +328,11 @@ public class WadSorter extends Utility<WadSorter.SorterContext>
 	 */
 	private void exportEntries(SorterContext context, WadFile wf) throws IOException
 	{
-		List<DoomWadEntry> outList = new List<DoomWadEntry>();
+		List<WadEntry> outList = new List<WadEntry>();
 		
 		for (Category c : Category.values())
 		{
-			List<DoomWadEntry> dumpList = context.outMap.get(c);
+			List<WadEntry> dumpList = context.outMap.get(c);
 			if (dumpList != null) switch (c)
 			{
 				case GLOBAL: 
@@ -347,63 +348,63 @@ public class WadSorter extends Utility<WadSorter.SorterContext>
 				case GRAPHICS:
 				case TEXTURE_LUMP:
 				case PNAMES_LUMP:
-					for (DoomWadEntry e : dumpList)
+					for (WadEntry e : dumpList)
 						outList.add(e);
 					break;
 				case MAP:
-					for (DoomWadEntry e : dumpList)
-						for (DoomWadEntry me : context.mapList.get(e.getName()))
+					for (WadEntry e : dumpList)
+						for (WadEntry me : context.mapList.get(e.getName()))
 							outList.add(me);
 					break;
 				case COLORMAP_NAMESPACE:
-					outList.add(wf.createMarker("C_START"));
-					for (DoomWadEntry e : dumpList) outList.add(e);
-					outList.add(wf.createMarker("C_END"));
+					outList.add(wf.addMarker("C_START"));
+					for (WadEntry e : dumpList) outList.add(e);
+					outList.add(wf.addMarker("C_END"));
 					break;
 				case ACS_NAMESPACE:
-					outList.add(wf.createMarker("A_START"));
-					for (DoomWadEntry e : dumpList) outList.add(e);
-					outList.add(wf.createMarker("A_END"));
+					outList.add(wf.addMarker("A_START"));
+					for (WadEntry e : dumpList) outList.add(e);
+					outList.add(wf.addMarker("A_END"));
 					break;
 				case VOICE_NAMESPACE:
-					outList.add(wf.createMarker("V_START"));
-					for (DoomWadEntry e : dumpList) outList.add(e);
-					outList.add(wf.createMarker("V_END"));
+					outList.add(wf.addMarker("V_START"));
+					for (WadEntry e : dumpList) outList.add(e);
+					outList.add(wf.addMarker("V_END"));
 					break;
 				case SPRITE_NAMESPACE:
-					outList.add(wf.createMarker("SS_START"));
-					for (DoomWadEntry e : dumpList) outList.add(e);
-					outList.add(wf.createMarker("SS_END"));
+					outList.add(wf.addMarker("SS_START"));
+					for (WadEntry e : dumpList) outList.add(e);
+					outList.add(wf.addMarker("SS_END"));
 					break;
 				case PATCH_NAMESPACE:
-					outList.add(wf.createMarker("PP_START"));
-					for (DoomWadEntry e : dumpList) outList.add(e);
-					outList.add(wf.createMarker("PP_END"));
+					outList.add(wf.addMarker("PP_START"));
+					for (WadEntry e : dumpList) outList.add(e);
+					outList.add(wf.addMarker("PP_END"));
 					break;
 				case FLAT_NAMESPACE:
-					outList.add(wf.createMarker("FF_START"));
-					for (DoomWadEntry e : dumpList) outList.add(e);
-					outList.add(wf.createMarker("FF_END"));
+					outList.add(wf.addMarker("FF_START"));
+					for (WadEntry e : dumpList) outList.add(e);
+					outList.add(wf.addMarker("FF_END"));
 					break;
 				case TEXTURE_NAMESPACE:
-					outList.add(wf.createMarker("TX_START"));
-					for (DoomWadEntry e : dumpList) outList.add(e);
-					outList.add(wf.createMarker("TX_END"));
+					outList.add(wf.addMarker("TX_START"));
+					for (WadEntry e : dumpList) outList.add(e);
+					outList.add(wf.addMarker("TX_END"));
 					break;
 				case HIRES_NAMESPACE:
-					outList.add(wf.createMarker("HI_START"));
-					for (DoomWadEntry e : dumpList) outList.add(e);
-					outList.add(wf.createMarker("HI_END"));
+					outList.add(wf.addMarker("HI_START"));
+					for (WadEntry e : dumpList) outList.add(e);
+					outList.add(wf.addMarker("HI_END"));
 					break;
 				case VOXEL_NAMESPACE:
-					outList.add(wf.createMarker("VX_START"));
-					for (DoomWadEntry e : dumpList) outList.add(e);
-					outList.add(wf.createMarker("VX_END"));
+					outList.add(wf.addMarker("VX_START"));
+					for (WadEntry e : dumpList) outList.add(e);
+					outList.add(wf.addMarker("VX_END"));
 					break;
 			}
 		}
 		
-		DoomWadEntry[] out = new DoomWadEntry[outList.size()];
+		WadEntry[] out = new WadEntry[outList.size()];
 		outList.toArray(out);
 		wf.setEntries(out);
 	}
@@ -414,12 +415,12 @@ public class WadSorter extends Utility<WadSorter.SorterContext>
 	 * @param entry the entry to add to the map.
 	 * @param map the map to add it to.
 	 */
-	private void addToMap(Category category, DoomWadEntry entry, HashMap<Category, List<DoomWadEntry>> map)
+	private void addToMap(Category category, WadEntry entry, HashMap<Category, List<WadEntry>> map)
 	{
-		List<DoomWadEntry> list = map.get(category);
+		List<WadEntry> list = map.get(category);
 		if (list == null)
 		{
-			list = new List<DoomWadEntry>();
+			list = new List<WadEntry>();
 			map.put(category, list);
 		}
 		list.add(entry);

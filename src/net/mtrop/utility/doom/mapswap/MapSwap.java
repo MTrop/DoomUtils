@@ -10,12 +10,13 @@ package net.mtrop.utility.doom.mapswap;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+import net.mtrop.doom.WadFile;
+import net.mtrop.doom.exception.WadException;
+import net.mtrop.doom.util.MapUtils;
+
 import com.blackrook.commons.Common;
 import com.blackrook.commons.hash.CaseInsensitiveHash;
 import com.blackrook.commons.math.Pair;
-import com.blackrook.doom.DoomMap;
-import com.blackrook.doom.WadException;
-import com.blackrook.doom.WadFile;
 import com.blackrook.utility.Context;
 import com.blackrook.utility.Settings;
 import com.blackrook.utility.Utility;
@@ -303,7 +304,7 @@ public class MapSwap extends Utility<MapSwap.MapSwapContext>
 			wf = new WadFile(filePath);
 
 			CaseInsensitiveHash mapnames = new CaseInsensitiveHash();
-			for (String m : DoomMap.getAllMapEntries(wf))
+			for (String m : MapUtils.getAllMapHeaders(wf))
 				mapnames.put(m);
 			
 			if (Common.isEmpty(mapnames))

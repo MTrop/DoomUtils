@@ -14,6 +14,13 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.regex.Pattern;
 
+import net.mtrop.doom.WadFile;
+import net.mtrop.doom.exception.WadException;
+import net.mtrop.doom.struct.Animated;
+import net.mtrop.doom.struct.Switches;
+import net.mtrop.doom.texture.TextureSet;
+import net.mtrop.doom.texture.TextureSet.Texture;
+
 import com.blackrook.commons.Common;
 import com.blackrook.commons.ObjectPair;
 import com.blackrook.commons.comparators.CaseInsensitiveComparator;
@@ -22,13 +29,6 @@ import com.blackrook.commons.hash.CaseInsensitiveHashMap;
 import com.blackrook.commons.linkedlist.Queue;
 import com.blackrook.commons.list.ComparatorList;
 import com.blackrook.commons.list.List;
-import com.blackrook.doom.WadException;
-import com.blackrook.doom.WadFile;
-import com.blackrook.doom.struct.Animated;
-import com.blackrook.doom.struct.Switches;
-import com.blackrook.doom.struct.Texture;
-import com.blackrook.doom.struct.TextureLump;
-import com.blackrook.doom.util.TextureSet;
 import com.blackrook.utility.Context;
 import com.blackrook.utility.Settings;
 import com.blackrook.utility.Utility;
@@ -40,7 +40,7 @@ import com.blackrook.utility.Version;
  */
 public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 {
-	private static final Version VERSION = new Version(0,9,7,0,"BETA");
+	private static final Version VERSION = new Version(1,0,0,0);
 
 	private static final Pattern PATCH_MARKER = Pattern.compile("P[0-9]*_(START|END)");
 	private static final Pattern FLAT_MARKER = Pattern.compile("F[0-9]*_(START|END)");
@@ -101,12 +101,12 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 				return 
 					NULL_NAMES.contains(o1.getName()) ? -1 :
 					NULL_NAMES.contains(o2.getName()) ? 1 :
-					o1.compareTo(o2);
+					o1.getName().compareTo(o2.getName());
 			}
 			else return 
 					o1.getName().equalsIgnoreCase(nullName) ? -1 :
 					o2.getName().equalsIgnoreCase(nullName) ? 1 :
-					o1.compareTo(o2);
+					o1.getName().compareTo(o2.getName());
 		}
 		
 	}
@@ -235,7 +235,7 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 		private WadUnit(WadFile file)
 		{
 			this.wad = file;
-			textureSet = new TextureSet();
+			textureSet = null;
 			flatIndices = new CaseInsensitiveHashMap<Integer>();
 			patchIndices = new CaseInsensitiveHashMap<Integer>();
 			texNamespaceIndices = new CaseInsensitiveHashMap<Integer>();
@@ -426,10 +426,10 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 	{
 		if (!context.noAnimated)
 		{
-			if (wf.contains("animated"))
+			if (wf.contains("ANIMATED"))
 			{
 				out.println("    Scanning ANIMATED...");
-				unit.animated.readDoomBytes(wf.getDataAsStream("animated"));
+				unit.animated.readBytes(wf.getInputStream("ANIMATED"));
 				processAnimated(unit, unit.animated);
 			}
 			
@@ -438,10 +438,10 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 
 		if (!context.noSwitches)
 		{
-			if (wf.contains("switches"))
+			if (wf.contains("SWITCHES"))
 			{
 				out.println("    Scanning SWITCHES...");
-				unit.switches.readDoomBytes(wf.getDataAsStream("switches"));
+				unit.switches.readBytes(wf.getInputStream("SWITCHES"));
 				
 				for (Switches.Entry entry : unit.switches.getSwitchList())
 				{
@@ -456,18 +456,20 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 	
 	private void processAnimated(WadUnit unit, Animated animated)
 	{
-		for (Animated.Entry entry : animated.getTextureList())
+		for (Animated.Entry entry : animated)
 		{
-			String[] seq = getTextureSequence(unit, entry.getFirstName(), entry.getLastName());
-			if (seq != null) for (String s : seq)
-				unit.animatedTexture.put(s, seq);
-		}
-		
-		for (Animated.Entry entry : animated.getFlatList())
-		{
-			String[] seq = getFlatSequence(unit, entry.getFirstName(), entry.getLastName());
-			if (seq != null) for (String s : seq)
-				unit.animatedFlat.put(s, seq);
+			if (entry.isTexture())
+			{
+				String[] seq = getTextureSequence(unit, entry.getFirstName(), entry.getLastName());
+				if (seq != null) for (String s : seq)
+					unit.animatedTexture.put(s, seq);
+			}
+			else
+			{
+				String[] seq = getFlatSequence(unit, entry.getFirstName(), entry.getLastName());
+				if (seq != null) for (String s : seq)
+					unit.animatedFlat.put(s, seq);
+			}
 		}
 	}
 
@@ -748,11 +750,11 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 				// for figuring out if we've found a replaced/added patch.
 				boolean foundPatches = false;
 				
-				TextureSet.Entry entry = unit.textureSet.getEntry(texture);
+				TextureSet.Texture entry = unit.textureSet.getTextureByName(texture);
 				
 				for (int i = 0; i < entry.getPatchCount(); i++)
 				{
-					TextureSet.Entry.Patch p = entry.getPatch(i);
+					TextureSet.Texture.Patch p = entry.getPatch(i);
 					String pname = p.getName();
 					
 					// does a matching patch exist?
@@ -779,7 +781,7 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 				if (foundPatches || !exportSet.textureSet.contains(texture))
 				{
 					out.printf("        Copying texture %s...\n", texture);
-					exportSet.textureSet.addEntry(entry);
+					exportSet.textureSet.addTexture(entry);
 					exportSet.textureHash.put(texture);
 				}
 				
@@ -818,17 +820,21 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 			for (WadUnit unit : context.wadPriority)
 			{
 				// did we pull any animated textures? if so, copy the entries.
-				for (Animated.Entry e : unit.animated.getTextureList())
+				
+				for (Animated.Entry entry : unit.animated)
 				{
-					if (exportSet.textureSet.contains(e.getFirstName()))
-						exportSet.animatedData.addTexture(e.getLastName(), e.getFirstName(), e.getTicks(), e.getAllowsDecals());
-				}
-				for (Animated.Entry e : unit.animated.getFlatList())
-				{
-					if (exportSet.flatHash.contains(e.getFirstName()))
-						exportSet.animatedData.addFlat(e.getLastName(), e.getFirstName(), e.getTicks());
-					else if (context.baseUnit.flatIndices.containsKey(e.getFirstName()))
-						exportSet.animatedData.addFlat(e.getLastName(), e.getFirstName(), e.getTicks());
+					if (entry.isTexture())
+					{
+						if (exportSet.textureSet.contains(entry.getFirstName()))
+							exportSet.animatedData.addTexture(entry.getLastName(), entry.getFirstName(), entry.getTicks(), entry.getAllowsDecals());
+					}
+					else
+					{
+						if (exportSet.flatHash.contains(entry.getFirstName()))
+							exportSet.animatedData.addFlat(entry.getLastName(), entry.getFirstName(), entry.getTicks());
+						else if (context.baseUnit.flatIndices.containsKey(entry.getFirstName()))
+							exportSet.animatedData.addFlat(entry.getLastName(), entry.getFirstName(), entry.getTicks());
+					}
 				}
 			}
 		}
@@ -865,41 +871,41 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 		
 		for (int i = 0; i < tlist.size(); i++)
 		{
-			String tentry = String.format("texture%01d", i+1);
+			String tentry = String.format("TEXTURE%01d", i+1);
 			int idx = wf.getIndexOf(tentry);
 			if (idx >= 0)
-				wf.replaceEntry(idx, tlist.getByIndex(i).getDoomBytes());
+				wf.replaceEntry(idx, tlist.getByIndex(i).toBytes());
 			else
-				wf.add(tentry, tlist.getByIndex(i).getDoomBytes());
+				wf.add(tentry, tlist.getByIndex(i).toBytes());
 		}
 		
-		int idx = wf.getIndexOf("pnames");
+		int idx = wf.getIndexOf("PNAMES");
 		if (idx >= 0)
-			wf.replaceEntry(idx, exportSet.textureSet.getPatchNames().getDoomBytes());
+			wf.replaceEntry(idx, exportSet.textureSet.getPatchNames().toBytes());
 		else
-			wf.add("pnames", exportSet.textureSet.getPatchNames().getDoomBytes());
+			wf.add("PNAMES", exportSet.textureSet.getPatchNames().toBytes());
 		
-		if (!context.noAnimated && (exportSet.animatedData.getFlatCount() > 0 || exportSet.animatedData.getTextureCount() > 0))
+		if (!context.noAnimated && !exportSet.animatedData.isEmpty())
 		{
 			idx = wf.getIndexOf("animated");
 			if (idx >= 0)
-				wf.replaceEntry(idx, exportSet.animatedData.getDoomBytes());
+				wf.replaceEntry(idx, exportSet.animatedData.toBytes());
 			else
-				wf.add("animated", exportSet.animatedData.getDoomBytes());
+				wf.add("ANIMATED", exportSet.animatedData.toBytes());
 		}
 
 		if (!context.noSwitches && exportSet.switchesData.getSwitchCount() > 0)
 		{
 			idx = wf.getIndexOf("switches");
 			if (idx >= 0)
-				wf.replaceEntry(idx, exportSet.switchesData.getDoomBytes());
+				wf.replaceEntry(idx, exportSet.switchesData.toBytes());
 			else
-				wf.add("switches", exportSet.switchesData.getDoomBytes());
+				wf.add("switches", exportSet.switchesData.toBytes());
 		}
 		
-		dumpListToOutputWad(exportSet.patchData, "pp", wf);
-		dumpListToOutputWad(exportSet.flatData, "ff", wf);
-		dumpListToOutputWad(exportSet.textureData, "tx", wf);
+		dumpListToOutputWad(exportSet.patchData, "PP", wf);
+		dumpListToOutputWad(exportSet.flatData, "FF", wf);
+		dumpListToOutputWad(exportSet.textureData, "TX", wf);
 		
 		return true;
 	}
@@ -912,7 +918,7 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 		String[] names = new String[entries.size() + 2];
 		byte[][] data = new byte[entries.size() + 2][];
 		
-		names[0] = namespace + "_start";
+		names[0] = namespace + "_START";
 		data[0] = new byte[0];
 		
 		for (int i = 0; i < entries.size(); i++)
@@ -921,10 +927,10 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 			data[1 + i] = entries.getByIndex(i).getValue();
 		}
 
-		names[names.length - 1] = namespace + "_end";
+		names[names.length - 1] = namespace + "_START";
 		data[data.length - 1] = new byte[0];
 		
-		wf.addAll(names, data);
+		wf.addAllData(names, data);
 		
 		return true;
 	}

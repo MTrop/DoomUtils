@@ -7,8 +7,9 @@
  ******************************************************************************/
 package net.mtrop.utility.doom.textract;
 
+import net.mtrop.doom.struct.Animated;
+
 import com.blackrook.commons.hash.CaseInsensitiveHashMap;
-import com.blackrook.doom.struct.Animated;
 
 /**
  * Texture Extractor tables.

@@ -16,13 +16,14 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
+import net.mtrop.doom.Wad;
+import net.mtrop.doom.WadMap;
+import net.mtrop.doom.exception.WadException;
+import net.mtrop.doom.util.MapUtils;
+
 import com.blackrook.commons.Common;
 import com.blackrook.commons.hash.CountMap;
 import com.blackrook.commons.list.List;
-import com.blackrook.doom.DoomMap;
-import com.blackrook.doom.DoomWad;
-import com.blackrook.doom.WadException;
-import com.blackrook.doom.WadMap;
 import com.blackrook.utility.Context;
 import com.blackrook.utility.Settings;
 import com.blackrook.utility.Utility;
@@ -153,10 +154,10 @@ public class MapCount extends Utility<MapCount.MapCountContext>
 	}
 	
 	// Inspect WAD contents.
-	private void inspectWAD(MapCountContext context, String fileName, DoomWad wad) throws IOException
+	private void inspectWAD(MapCountContext context, String fileName, Wad wad) throws IOException
 	{
 		context.wadCount++;
-		String[] mapHeaders = DoomMap.getAllMapEntries(wad);
+		String[] mapHeaders = MapUtils.getAllMapHeaders(wad);
 		for (String mapName : mapHeaders)
 		{
 			context.mapCount.give(mapName);

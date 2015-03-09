@@ -16,9 +16,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
+import net.mtrop.doom.struct.Demo;
+
 import com.blackrook.commons.Common;
 import com.blackrook.commons.list.List;
-import com.blackrook.doom.struct.Demo;
 import com.blackrook.utility.Context;
 import com.blackrook.utility.Settings;
 import com.blackrook.utility.Utility;
@@ -146,9 +147,9 @@ public class DemoSpy extends Utility<DemoSpy.DemoSpyContext>
 	// Processes demo data.
 	private void processDemoData(InputStream in, String name, int outputType)
 	{
-		Demo demo = new Demo();
+		Demo demo = null;
 		try {
-			demo.readDoomBytes(in);
+			demo = Demo.read(in);
 		} catch (IOException e) {
 			switch (outputType)
 			{

@@ -5,17 +5,19 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 
+import net.mtrop.doom.DoomPK3;
+import net.mtrop.doom.Wad;
+import net.mtrop.doom.WadFile;
+import net.mtrop.doom.exception.WadException;
+import net.mtrop.doom.graphics.Flat;
+import net.mtrop.doom.graphics.Picture;
+
 import com.blackrook.commons.Common;
 import com.blackrook.commons.list.List;
-import com.blackrook.doom.DoomPK3;
-import com.blackrook.doom.DoomWad;
-import com.blackrook.doom.WadException;
-import com.blackrook.doom.WadFile;
-import com.blackrook.doom.struct.Flat;
-import com.blackrook.doom.struct.Patch;
 import com.blackrook.utility.Context;
 import com.blackrook.utility.Settings;
 import com.blackrook.utility.Utility;
@@ -187,11 +189,11 @@ public class PaletteConvert extends Utility<PaletteConvert.PSContext>
 	}
 
 	/** Reads a wad file for a palette. */
-	private boolean readPaletteFromWAD(PSContext context, boolean source, DoomWad wadFile) throws IOException
+	private boolean readPaletteFromWAD(PSContext context, boolean source, Wad wadFile) throws IOException
 	{
 		InputStream in = null;
 		try {
-			in = wadFile.getDataAsStream("playpal");
+			in = wadFile.getInputStream("PLAYPAL");
 			return readPaletteFromRawFile(context, source, in);
 		} finally {
 			Common.close(in);
@@ -201,13 +203,13 @@ public class PaletteConvert extends Utility<PaletteConvert.PSContext>
 	/** Reads a pk3 file for a palette. */
 	private boolean readPaletteFromPK3(PSContext context, boolean source, DoomPK3 pk3File) throws IOException
 	{
-		for (ZipEntry ze : pk3File.getGlobals())
+		for (ZipEntry ze : Collections.list(pk3File.entries()))
 		{
 			if (ze.getName().toLowerCase().contains("playpal."))
 			{
 				InputStream in = null;
 				try {
-					in = pk3File.getDataAsStream(ze);
+					in = pk3File.getInputStream(ze);
 					return readPaletteFromRawFile(context, source, in);
 				} finally {
 					Common.close(in);
@@ -247,11 +249,11 @@ public class PaletteConvert extends Utility<PaletteConvert.PSContext>
 	}
 	
 	/** Reads a wad file for colormap brightmask. */
-	private boolean readBrightmaskFromWAD(PSContext context, boolean source, DoomWad wadFile) throws IOException
+	private boolean readBrightmaskFromWAD(PSContext context, boolean source, Wad wadFile) throws IOException
 	{
 		InputStream in = null;
 		try {
-			in = wadFile.getDataAsStream("colormap");
+			in = wadFile.getInputStream("COLORMAP");
 			return readBrightmaskFromRawFile(context, source, in);
 		} finally {
 			Common.close(in);
@@ -261,13 +263,13 @@ public class PaletteConvert extends Utility<PaletteConvert.PSContext>
 	/** Reads a pk3 file for colormap brightmask. */
 	private boolean readBrightmaskFromPK3(PSContext context, boolean source, DoomPK3 pk3File) throws IOException
 	{
-		for (ZipEntry ze : pk3File.getGlobals())
+		for (ZipEntry ze : Collections.list(pk3File.entries()))
 		{
 			if (ze.getName().toLowerCase().contains("colormap."))
 			{
 				InputStream in = null;
 				try {
-					in = pk3File.getDataAsStream(ze);
+					in = pk3File.getInputStream(ze);
 					return readBrightmaskFromRawFile(context, source, in);
 				} finally {
 					Common.close(in);
@@ -413,12 +415,12 @@ public class PaletteConvert extends Utility<PaletteConvert.PSContext>
 	/** Process the patch file. */
 	private void processPatchFile(PSContext context, File f)
 	{
-		Patch inPatch = new Patch();
+		Picture inPatch = null;
 	
 		FileInputStream fis = null;
 		try {
 			fis = new FileInputStream(f);
-			inPatch.readDoomBytes(fis);
+			inPatch = Picture.read(fis);
 		} catch (IOException e) {
 			out.printf("\rERROR: Trouble reading %s. %s: %s\n", f.getName(), e.getClass().getSimpleName(), e.getLocalizedMessage());
 		} finally {
@@ -430,7 +432,7 @@ public class PaletteConvert extends Utility<PaletteConvert.PSContext>
 			{
 				int index = inPatch.getPixel(w, h);
 				// only care if the pixel is not translucent.
-				if (index != Patch.PIXEL_TRANSLUCENT)
+				if (index != Picture.PIXEL_TRANSLUCENT)
 				{
 					byte[] color = context.sourcePalette[index];
 					int argb = 
@@ -446,7 +448,7 @@ public class PaletteConvert extends Utility<PaletteConvert.PSContext>
 		FileOutputStream fos = null;
 		try {
 			fos = new FileOutputStream(f);
-			inPatch.writeDoomBytes(fos);
+			inPatch.writeBytes(fos);
 		} catch (IOException e) {
 			out.printf("\rERROR: Trouble reading %s. %s: %s\n", f.getName(), e.getClass().getSimpleName(), e.getLocalizedMessage());
 		} finally {
@@ -457,13 +459,13 @@ public class PaletteConvert extends Utility<PaletteConvert.PSContext>
 	/** Process the flat file. */
 	private void processFlatFile(PSContext context, File f)
 	{
-		long len = f.length();
-		Flat inFlat = new Flat((int)len, 1);
+		Flat inFlat = null;
 	
 		FileInputStream fis = null;
 		try {
 			fis = new FileInputStream(f);
-			inFlat.readDoomBytes(fis);
+			long len = f.length();
+			inFlat = Flat.read((int)len, 1, fis);  // load as one-dimensional because who cares.
 		} catch (IOException e) {
 			out.printf("\rERROR: Trouble reading %s. %s: %s\n", f.getName(), e.getClass().getSimpleName(), e.getLocalizedMessage());
 			return;
@@ -476,23 +478,20 @@ public class PaletteConvert extends Utility<PaletteConvert.PSContext>
 			{
 				int index = inFlat.getPixel(w, h);
 				// only care if the pixel is not translucent.
-				if (index != Patch.PIXEL_TRANSLUCENT)
-				{
-					byte[] color = context.sourcePalette[index];
-					int argb = 
-						(0x0ff << 24)					//a 
-						| ((0x0ff & color[0]) << 16)	//r
-						| ((0x0ff & color[1]) << 8)		//g
-						| ((0x0ff & color[2]))			//b
-						;
-					inFlat.setPixel(w, h, matchColor(argb, context.targetPalette, context.targetBrightmask, context.sourceBrightmask[index], true));
-				}
+				byte[] color = context.sourcePalette[index];
+				int argb = 
+					(0x0ff << 24)					//a 
+					| ((0x0ff & color[0]) << 16)	//r
+					| ((0x0ff & color[1]) << 8)		//g
+					| ((0x0ff & color[2]))			//b
+					;
+				inFlat.setPixel(w, h, matchColor(argb, context.targetPalette, context.targetBrightmask, context.sourceBrightmask[index], true));
 			}
 		
 		FileOutputStream fos = null;
 		try {
 			fos = new FileOutputStream(f);
-			inFlat.writeDoomBytes(fos);
+			inFlat.writeBytes(fos);
 		} catch (IOException e) {
 			out.printf("\rERROR: Trouble reading %s. %s: %s\n", f.getName(), e.getClass().getSimpleName(), e.getLocalizedMessage());
 			return;

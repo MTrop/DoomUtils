@@ -16,21 +16,26 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
+import net.mtrop.doom.Wad;
+import net.mtrop.doom.WadBuffer;
+import net.mtrop.doom.WadFile;
+import net.mtrop.doom.enums.MapFormat;
+import net.mtrop.doom.exception.WadException;
+import net.mtrop.doom.map.binary.DoomThing;
+import net.mtrop.doom.map.binary.HexenThing;
+import net.mtrop.doom.map.binary.StrifeThing;
+import net.mtrop.doom.map.udmf.UDMFCommonThingAttributes;
+import net.mtrop.doom.map.udmf.UDMFObject;
+import net.mtrop.doom.map.udmf.UDMFReader;
+import net.mtrop.doom.map.udmf.UDMFTable;
+import net.mtrop.doom.util.MapUtils;
+
 import com.blackrook.commons.Common;
 import com.blackrook.commons.ObjectPair;
 import com.blackrook.commons.hash.Hash;
 import com.blackrook.commons.list.List;
 import com.blackrook.commons.list.SortedList;
 import com.blackrook.commons.list.SortedMap;
-import com.blackrook.doom.DoomMap;
-import com.blackrook.doom.DoomWad;
-import com.blackrook.doom.WadBuffer;
-import com.blackrook.doom.WadException;
-import com.blackrook.doom.WadFile;
-import com.blackrook.doom.DoomMap.Format;
-import com.blackrook.doom.struct.Thing;
-import com.blackrook.doom.udmf.UDMFTable;
-import com.blackrook.doom.udmf.namespace.UDMFNamespace;
 import com.blackrook.utility.Context;
 import com.blackrook.utility.Settings;
 import com.blackrook.utility.Utility;
@@ -203,75 +208,235 @@ public class ThingSpy extends Utility<ThingSpy.ThingSpyContext>
 	}
 	
 	// Inspect WAD contents.
-	private void inspectWAD(ThingSpyContext context, DoomWad wad) throws IOException
+	private void inspectWAD(ThingSpyContext context, Wad wad) throws IOException
 	{
-		String[] mapHeaders = DoomMap.getAllMapEntries(wad);
+		String[] mapHeaders = MapUtils.getAllMapHeaders(wad);
 		for (String mapName : mapHeaders)
-			inpectMap(context, wad, mapName);
+			inspectMap(context, wad, mapName);
 	}
 
 	// Inspect a map in a WAD.
-	private void inpectMap(ThingSpyContext context, DoomWad wad, String mapName) throws IOException
+	private void inspectMap(ThingSpyContext context, Wad wad, String mapName) throws IOException
 	{
 		if (!context.nomessage)
 			out.println("    Opening map "+mapName+"...");
 		
-		DoomMap.Format type = DoomMap.detectFormat(wad, mapName);
+		MapFormat type = MapUtils.getMapFormat(wad, mapName);
+
+		if (type == null)
+		{
+			out.println("    ERROR: NOT A MAP!");
+			return;
+		}
 
 		if (!context.nomessage)
 			out.println("    Format is "+type.name()+"...");
 
-		UDMFTable table = null;
-		UDMFNamespace namespace = null;
-
-		if (type == Format.UDMF)
+		// filled in if UDMF.
+		UDMFTable udmf = null;
+		
+		if (type == MapFormat.UDMF)
 		{
-			table = DoomMap.readUDMFTable(wad.getData("textmap", wad.getIndexOf(mapName)));
-			namespace = DoomMap.readUDMFNamespace(table);
+			InputStream in = wad.getInputStream("TEXTMAP", wad.getLastIndexOf(mapName));
+			udmf = UDMFReader.readData(in);
+			Common.close(in);
 		}
-			
+				
 		if (!context.nomessage)
 			out.println("        Reading THINGS...");
 
-		List<Thing> things = null;
+		DoomThing[] dthings = null;
+		HexenThing[] hthings = null;
+		StrifeThing[] sthings = null;
+		UDMFObject[] uthings = null;
+		
 		switch (type)
 		{
-			case DOOM:
 			default:
-				things = DoomMap.readDoomThingLump(wad.getData("things", wad.getIndexOf(mapName)));
-				break;
+			case DOOM:
+			{
+				byte[] in = wad.getData("THINGS", wad.getLastIndexOf(mapName));
+				dthings = DoomThing.create(in, in.length / DoomThing.LENGTH);
+			}
+			break;
+			
 			case HEXEN:
-				things = DoomMap.readHexenThingLump(wad.getData("things", wad.getIndexOf(mapName)));
-				break;
+			{
+				byte[] in = wad.getData("THINGS", wad.getLastIndexOf(mapName));
+				hthings = HexenThing.create(in, in.length / HexenThing.LENGTH);
+			}
+			break;
+			
 			case STRIFE:
-				things = DoomMap.readStrifeThingLump(wad.getData("things", wad.getIndexOf(mapName)));
-				break;
-			case UDMF:
-				things = DoomMap.readUDMFThings(namespace, table);
-				break;
-		}
+			{
+				byte[] in = wad.getData("THINGS", wad.getLastIndexOf(mapName));
+				sthings = StrifeThing.create(in, in.length / StrifeThing.LENGTH);
+			}
+			break;
 
-		if (context.search && !searchThings(context, mapName, things))
-			context.thingList.remove(mapName);
+			case UDMF:
+			{
+				uthings = udmf.getObjects("thing");
+			}
+			break;
+		}// switch
+
+		
+		if (context.search)
+		{
+			boolean st = false;
+			switch (type)
+			{
+				default:
+				case DOOM:
+					st = searchThings(context, mapName, dthings);
+					break;
+				case HEXEN:
+					st = searchThings(context, mapName, hthings);
+					break;
+				case STRIFE:
+					st = searchThings(context, mapName, sthings);
+					break;
+				case UDMF:
+					st = searchThings(context, mapName, uthings);
+					break;
+			}// switch
+			
+			if (!st)
+				context.thingList.remove(mapName);
+		}
 		else
-			readThings(context, mapName, things);
+		{
+			switch (type)
+			{
+				default:
+				case DOOM:
+					readThings(context, mapName, dthings);
+					break;
+				case HEXEN:
+					readThings(context, mapName, hthings);
+					break;
+				case STRIFE:
+					readThings(context, mapName, sthings);
+					break;
+				case UDMF:
+					readThings(context, mapName, uthings);
+					break;
+			}// switch
+		}
 	}
 	
 	// Adds things to the list.
-	private void readThings(ThingSpyContext context, String mapName, List<Thing> things)
+	private void readThings(ThingSpyContext context, String mapName, DoomThing[] things)
 	{
-		for (Thing t : things)
+		for (DoomThing t : things)
 		{
 			addThing(context, mapName, t.getType());
 		}
 	}
 
-	// Searches things. Returns true if the map lump should be included.
-	private boolean searchThings(ThingSpyContext context, String mapName, List<Thing> things)
+	// Adds things to the list.
+	private void readThings(ThingSpyContext context, String mapName, HexenThing[] things)
 	{
-		for (Thing t : things)
+		for (HexenThing t : things)
+		{
+			addThing(context, mapName, t.getType());
+		}
+	}
+	
+	// Adds things to the list.
+	private void readThings(ThingSpyContext context, String mapName, StrifeThing[] things)
+	{
+		for (StrifeThing t : things)
+		{
+			addThing(context, mapName, t.getType());
+		}
+	}
+
+	// Adds things to the list.
+	private void readThings(ThingSpyContext context, String mapName, UDMFObject[] things)
+	{
+		for (UDMFObject s : things)
+		{
+			addThing(context, mapName, s.getInteger(UDMFCommonThingAttributes.ATTRIB_TYPE));
+		}
+	}
+
+	// Searches things. Returns true if the map lump should be included.
+	private boolean searchThings(ThingSpyContext context, String mapName, DoomThing[] things)
+	{
+		for (DoomThing t : things)
 		{
 			int type = t.getType();
+			if (context.searchList.contains(type))
+			{
+				int n = addThing(context, mapName, type);
+				if (!context.allFlag)
+					return true;
+				else
+				{
+					if (context.searchList.size() == n)
+						return true;
+					// else, continue.
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+	// Searches things. Returns true if the map lump should be included.
+	private boolean searchThings(ThingSpyContext context, String mapName, HexenThing[] things)
+	{
+		for (HexenThing t : things)
+		{
+			int type = t.getType();
+			if (context.searchList.contains(type))
+			{
+				int n = addThing(context, mapName, type);
+				if (!context.allFlag)
+					return true;
+				else
+				{
+					if (context.searchList.size() == n)
+						return true;
+					// else, continue.
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+	// Searches things. Returns true if the map lump should be included.
+	private boolean searchThings(ThingSpyContext context, String mapName, StrifeThing[] things)
+	{
+		for (StrifeThing t : things)
+		{
+			int type = t.getType();
+			if (context.searchList.contains(type))
+			{
+				int n = addThing(context, mapName, type);
+				if (!context.allFlag)
+					return true;
+				else
+				{
+					if (context.searchList.size() == n)
+						return true;
+					// else, continue.
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+	// Searches things. Returns true if the map lump should be included.
+	private boolean searchThings(ThingSpyContext context, String mapName, UDMFObject[] things)
+	{
+		for (UDMFObject t : things)
+		{
+			int type = t.getInteger(UDMFCommonThingAttributes.ATTRIB_TYPE);
 			if (context.searchList.contains(type))
 			{
 				int n = addThing(context, mapName, type);

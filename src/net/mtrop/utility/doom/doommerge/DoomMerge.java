@@ -14,11 +14,12 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 
+import net.mtrop.doom.WadBuffer;
+import net.mtrop.doom.WadEntry;
+import net.mtrop.doom.WadFile;
+
 import com.blackrook.commons.Common;
 import com.blackrook.commons.list.List;
-import com.blackrook.doom.DoomWadEntry;
-import com.blackrook.doom.WadBuffer;
-import com.blackrook.doom.WadFile;
 import com.blackrook.utility.Command;
 import com.blackrook.utility.Context;
 import com.blackrook.utility.Executor;
@@ -242,7 +243,7 @@ public class DoomMerge extends Utility<DoomMerge.MergeContext>
 								} finally {
 									Common.close(fis);
 								}
-								context.outWad.add(entryName, bos.toByteArray());
+								context.outWad.addData(entryName, bos.toByteArray());
 							}
 						}
 						else
@@ -250,8 +251,8 @@ public class DoomMerge extends Utility<DoomMerge.MergeContext>
 							WadFile wad = new WadFile(f);
 							for (int i = 0; i < wad.getSize(); i++)
 							{
-								DoomWadEntry entry = wad.getEntry(i);
-								context.outWad.add(entry.getName(), wad.getData(entry));
+								WadEntry entry = wad.getEntry(i);
+								context.outWad.addData(entry.getName(), wad.getData(entry));
 							}
 							wad.close();
 						}
