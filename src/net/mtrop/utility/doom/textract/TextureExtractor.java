@@ -900,7 +900,7 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 			if (idx >= 0)
 				wf.replaceEntry(idx, exportSet.switchesData.toBytes());
 			else
-				wf.add("switches", exportSet.switchesData.toBytes());
+				wf.add("SWITCHES", exportSet.switchesData.toBytes());
 		}
 		
 		dumpListToOutputWad(exportSet.patchData, "PP", wf);
