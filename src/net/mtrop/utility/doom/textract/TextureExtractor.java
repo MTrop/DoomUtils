@@ -18,14 +18,22 @@ import net.mtrop.doom.WadFile;
 import net.mtrop.doom.exception.WadException;
 import net.mtrop.doom.struct.Animated;
 import net.mtrop.doom.struct.Switches;
+import net.mtrop.doom.texture.CommonTexture;
+import net.mtrop.doom.texture.CommonTextureList;
+import net.mtrop.doom.texture.DoomTextureList;
+import net.mtrop.doom.texture.PatchNames;
+import net.mtrop.doom.texture.StrifeTextureList;
 import net.mtrop.doom.texture.TextureSet;
 import net.mtrop.doom.texture.TextureSet.Texture;
+import net.mtrop.doom.util.GraphicUtils;
+import net.mtrop.doom.util.WadUtils;
 
 import com.blackrook.commons.Common;
 import com.blackrook.commons.ObjectPair;
 import com.blackrook.commons.comparators.CaseInsensitiveComparator;
 import com.blackrook.commons.hash.CaseInsensitiveHash;
 import com.blackrook.commons.hash.CaseInsensitiveHashMap;
+import com.blackrook.commons.hash.Hash;
 import com.blackrook.commons.linkedlist.Queue;
 import com.blackrook.commons.list.ComparatorList;
 import com.blackrook.commons.list.List;
@@ -207,8 +215,14 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 		/** WAD path. */
 		WadFile wad; 
 
+		/** Names in TEXTURE1. */
+		Hash<String> tex1names;
 		/** Texture Set. */
 		TextureSet textureSet;
+		/** Texture 1 */
+		boolean tex1exists;
+		/** Texture 2 */
+		boolean tex2exists;
 		
 		/** Patch ENTRY indices. */
 		CaseInsensitiveHashMap<Integer> patchIndices; 		
@@ -236,6 +250,9 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 		{
 			this.wad = file;
 			textureSet = null;
+			tex1names = null;
+			tex1exists = false;
+			tex2exists = false;
 			flatIndices = new CaseInsensitiveHashMap<Integer>();
 			patchIndices = new CaseInsensitiveHashMap<Integer>();
 			texNamespaceIndices = new CaseInsensitiveHashMap<Integer>();
@@ -381,10 +398,9 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 				unit.textureList.add(s);
 		}
 
-		for (TextureLump tl : unit.textureSet.getTextureLumps())
-			for (Texture t : tl)
-				if (!unit.textureList.contains(t.getName()))
-					unit.textureList.add(t.getName());
+		for (TextureSet.Texture tex : unit.textureSet)
+			if (!unit.textureList.contains(tex.getName()))
+				unit.textureList.add(tex.getName());
 
 		try {
 			if (!scanAnimated(context, unit, wf))
@@ -405,11 +421,18 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 	// Scan for TEXTUREx and PNAMES.
 	private boolean scanTexturesAndPNames(ExtractorContext context, WadUnit unit, WadFile wf) throws IOException
 	{
-		if (!wf.contains("texture1"))
+		if (!wf.contains("TEXTURE1"))
 			return true;
 		out.println("    Scanning TEXTUREx/PNAMES...");
+		
+		
+		PatchNames patchNames = null;
+		CommonTextureList<?> textureList1 = null;
+		CommonTextureList<?> textureList2 = null;
+		byte[] textureData = null;
+		
 		try {
-			unit.textureSet = new TextureSet(wf);
+			textureData = wf.getData("TEXTURE1");
 		} catch (WadException e) {
 			out.printf("ERROR: %s: %s\n", wf.getFilePath(), e.getMessage());
 			return false;
@@ -417,6 +440,60 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 			out.printf("ERROR: %s: %s\n", wf.getFilePath(), e.getMessage());
 			return false;
 		}
+
+		// figure out if Strife or Doom Texture Lump.
+		if (WadUtils.isStrifeTextureData(textureData))
+			textureList1 = StrifeTextureList.create(textureData);
+		else
+			textureList1 = DoomTextureList.create(textureData);
+
+		unit.tex1names = new Hash<String>(textureList1.size());
+		for (CommonTexture<?> ct : textureList1)
+			unit.tex1names.put(ct.getName());
+
+		unit.tex1exists = true;
+		
+		try {
+			textureData = wf.getData("TEXTURE2");
+		} catch (WadException e) {
+			out.printf("ERROR: %s: %s\n", wf.getFilePath(), e.getMessage());
+			return false;
+		} catch (IOException e) {
+			out.printf("ERROR: %s: %s\n", wf.getFilePath(), e.getMessage());
+			return false;
+		}
+
+		if (textureData != null)
+		{
+			// figure out if Strife or Doom Texture Lump.
+			if (WadUtils.isStrifeTextureData(textureData))
+				textureList2 = StrifeTextureList.create(textureData);
+			else
+				textureList2 = DoomTextureList.create(textureData);
+			
+			unit.tex2exists = true;
+		}
+		
+		try {
+			textureData = wf.getData("PNAMES");
+			if (textureData == null)
+			{
+				out.printf("ERROR: %s: TEXTUREx without PNAMES!\n", wf.getFilePath());
+				return false;
+			}
+			patchNames = PatchNames.create(textureData);
+		} catch (WadException e) {
+			out.printf("ERROR: %s: %s\n", wf.getFilePath(), e.getMessage());
+			return false;
+		} catch (IOException e) {
+			out.printf("ERROR: %s: %s\n", wf.getFilePath(), e.getMessage());
+			return false;
+		}
+		
+		if (textureList2 != null)
+			unit.textureSet = new TextureSet(patchNames, textureList1, textureList2);
+		else
+			unit.textureSet = new TextureSet(patchNames, textureList1);
 		
 		return true;
 	}
@@ -867,6 +944,7 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 		exportSet.textureData.sort();
 		
 		out.println("Dumping entries...");
+		
 		List<TextureLump> tlist = exportSet.textureSet.getTextureLumps();
 		
 		for (int i = 0; i < tlist.size(); i++)
@@ -876,7 +954,7 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 			if (idx >= 0)
 				wf.replaceEntry(idx, tlist.getByIndex(i).toBytes());
 			else
-				wf.add(tentry, tlist.getByIndex(i).toBytes());
+				wf.addData(tentry, tlist.getByIndex(i).toBytes());
 		}
 		
 		int idx = wf.getIndexOf("PNAMES");
@@ -891,7 +969,7 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 			if (idx >= 0)
 				wf.replaceEntry(idx, exportSet.animatedData.toBytes());
 			else
-				wf.add("ANIMATED", exportSet.animatedData.toBytes());
+				wf.addData("ANIMATED", exportSet.animatedData.toBytes());
 		}
 
 		if (!context.noSwitches && exportSet.switchesData.getSwitchCount() > 0)
@@ -900,7 +978,7 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 			if (idx >= 0)
 				wf.replaceEntry(idx, exportSet.switchesData.toBytes());
 			else
-				wf.add("SWITCHES", exportSet.switchesData.toBytes());
+				wf.addData("SWITCHES", exportSet.switchesData.toBytes());
 		}
 		
 		dumpListToOutputWad(exportSet.patchData, "PP", wf);
