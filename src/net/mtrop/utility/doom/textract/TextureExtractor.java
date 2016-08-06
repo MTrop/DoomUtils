@@ -28,6 +28,7 @@ import net.mtrop.doom.texture.TextureSet.Texture;
 import net.mtrop.doom.util.GraphicUtils;
 import net.mtrop.doom.util.WadUtils;
 
+import com.blackrook.commons.AbstractSet;
 import com.blackrook.commons.Common;
 import com.blackrook.commons.ObjectPair;
 import com.blackrook.commons.comparators.CaseInsensitiveComparator;
@@ -223,6 +224,8 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 		boolean tex1exists;
 		/** Texture 2 */
 		boolean tex2exists;
+		/** Is Strife-formatted list? */
+		boolean strife;
 		
 		/** Patch ENTRY indices. */
 		CaseInsensitiveHashMap<Integer> patchIndices; 		
@@ -443,9 +446,15 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 
 		// figure out if Strife or Doom Texture Lump.
 		if (WadUtils.isStrifeTextureData(textureData))
+		{
 			textureList1 = StrifeTextureList.create(textureData);
+			unit.strife = true;
+		}
 		else
+		{
 			textureList1 = DoomTextureList.create(textureData);
+			unit.strife = false;
+		}
 
 		unit.tex1names = new Hash<String>(textureList1.size());
 		for (CommonTexture<?> ct : textureList1)
@@ -944,8 +953,28 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 		exportSet.textureData.sort();
 		
 		out.println("Dumping entries...");
+
+		List<CommonTextureList<?>> tlist = new List<>();
+		PatchNames pnames;
 		
-		List<TextureLump> tlist = exportSet.textureSet.getTextureLumps();
+		// if Strife-formatted source, export to Strife.
+		if (context.baseUnit.strife)
+		{
+			pnames = new PatchNames();
+			StrifeTextureList tex1 = new StrifeTextureList();
+			StrifeTextureList tex2 = context.baseUnit.tex2exists ? new StrifeTextureList() : null;
+			AbstractSet<String> tex1names = context.baseUnit.tex2exists ? context.baseUnit.tex1names : null;
+			GraphicUtils.exportTextureSet(exportSet.textureSet, pnames, tex1, tex2, tex1names);
+		}
+		// if not, Doom format.
+		else
+		{
+			pnames = new PatchNames();
+			DoomTextureList tex1 = new DoomTextureList();
+			DoomTextureList tex2 = context.baseUnit.tex2exists ? new DoomTextureList() : null;
+			AbstractSet<String> tex1names = context.baseUnit.tex2exists ? context.baseUnit.tex1names : null;
+			GraphicUtils.exportTextureSet(exportSet.textureSet, pnames, tex1, tex2, tex1names);
+		}
 		
 		for (int i = 0; i < tlist.size(); i++)
 		{
@@ -959,9 +988,9 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 		
 		int idx = wf.getIndexOf("PNAMES");
 		if (idx >= 0)
-			wf.replaceEntry(idx, exportSet.textureSet.getPatchNames().toBytes());
+			wf.replaceEntry(idx, pnames.toBytes());
 		else
-			wf.add("PNAMES", exportSet.textureSet.getPatchNames().toBytes());
+			wf.addData("PNAMES", pnames.toBytes());
 		
 		if (!context.noAnimated && !exportSet.animatedData.isEmpty())
 		{
