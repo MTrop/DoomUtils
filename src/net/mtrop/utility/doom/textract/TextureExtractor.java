@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.regex.Pattern;
 
 import net.mtrop.doom.WadFile;
+import net.mtrop.doom.exception.TextureException;
 import net.mtrop.doom.exception.WadException;
 import net.mtrop.doom.struct.Animated;
 import net.mtrop.doom.struct.Switches;
@@ -220,8 +221,6 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 		Hash<String> tex1names;
 		/** Texture Set. */
 		TextureSet textureSet;
-		/** Texture 1 */
-		boolean tex1exists;
 		/** Texture 2 */
 		boolean tex2exists;
 		/** Is Strife-formatted list? */
@@ -254,7 +253,6 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 			this.wad = file;
 			textureSet = null;
 			tex1names = null;
-			tex1exists = false;
 			tex2exists = false;
 			flatIndices = new CaseInsensitiveHashMap<Integer>();
 			patchIndices = new CaseInsensitiveHashMap<Integer>();
@@ -460,8 +458,6 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 		for (CommonTexture<?> ct : textureList1)
 			unit.tex1names.put(ct.getName());
 
-		unit.tex1exists = true;
-		
 		try {
 			textureData = wf.getData("TEXTURE2");
 		} catch (WadException e) {
@@ -994,7 +990,7 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 		
 		if (!context.noAnimated && !exportSet.animatedData.isEmpty())
 		{
-			idx = wf.getIndexOf("animated");
+			idx = wf.getIndexOf("ANIMATED");
 			if (idx >= 0)
 				wf.replaceEntry(idx, exportSet.animatedData.toBytes());
 			else
@@ -1003,7 +999,7 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 
 		if (!context.noSwitches && exportSet.switchesData.getSwitchCount() > 0)
 		{
-			idx = wf.getIndexOf("switches");
+			idx = wf.getIndexOf("SWITCHES");
 			if (idx >= 0)
 				wf.replaceEntry(idx, exportSet.switchesData.toBytes());
 			else
@@ -1060,15 +1056,12 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 
 		ExportSet exportSet = new ExportSet();
 		try {
-			exportSet.textureSet = new TextureSet(baseWadFile);
+			exportSet.textureSet = GraphicUtils.importTextureSet(baseWadFile);
 			extractTextures(context, exportSet);
 			extractFlats(context, exportSet);
 			mergeAnimatedAndSwitches(context, exportSet);
 			dumpToOutputWad(context, exportSet, outWadFile);
-		} catch (WadException e) {
-			out.printf("ERROR: %s: %s\n", baseWadFile.getFilePath(), e.getMessage());
-			return false;
-		} catch (IOException e) {
+		} catch (TextureException | IOException e) {
 			out.printf("ERROR: %s: %s\n", baseWadFile.getFilePath(), e.getMessage());
 			return false;
 		} finally {
