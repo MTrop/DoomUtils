@@ -84,7 +84,7 @@ public interface TextureTables
 		addFlat("F_FAN2", "F_FAN1", 4);
 		addFlat("F_CONVY2", "F_CONVY1", 4);
 		addFlat("F_RDALN4", "F_RDALN1", 4);
-}};
+	}};
 	
 	/**
 	 * Switch texture groups.
@@ -333,6 +333,6 @@ public interface TextureTables
 		put("SWTRMG04", "SWTRMG01");
 		put("SW1ON", "SW1OFF");
 		put("SW2GRAY1", "SW1GRAY1");
-}};
+	}};
 	
 }

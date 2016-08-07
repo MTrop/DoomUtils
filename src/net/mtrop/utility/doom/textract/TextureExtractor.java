@@ -27,6 +27,7 @@ import net.mtrop.doom.texture.StrifeTextureList;
 import net.mtrop.doom.texture.TextureSet;
 import net.mtrop.doom.texture.TextureSet.Texture;
 import net.mtrop.doom.util.GraphicUtils;
+import net.mtrop.doom.util.NameUtils;
 import net.mtrop.doom.util.WadUtils;
 
 import com.blackrook.commons.AbstractSet;
@@ -371,19 +372,19 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 		}
 		
 		out.println("    Scanning patch entries...");
-		if (!scanNamespace("p", "pp", PATCH_MARKER, unit, wf, unit.patchIndices))
+		if (!scanNamespace("P", "PP", PATCH_MARKER, unit, wf, unit.patchIndices))
 			return false;
-		if (!scanNamespace("pp", "p", null, unit, wf, unit.patchIndices))
+		if (!scanNamespace("PP", "P", null, unit, wf, unit.patchIndices))
 			return false;
 		out.printf("        %d patches.\n", unit.patchIndices.size());
 		out.println("    Scanning flat entries...");
-		if (!scanNamespace("f", "ff", FLAT_MARKER, unit, wf, unit.flatIndices))
+		if (!scanNamespace("F", "FF", FLAT_MARKER, unit, wf, unit.flatIndices))
 			return false;
-		if (!scanNamespace("ff", "f", null, unit, wf, unit.flatIndices))
+		if (!scanNamespace("FF", "F", null, unit, wf, unit.flatIndices))
 			return false;
 		out.printf("        %d flats.\n", unit.flatIndices.size());
 		out.println("    Scanning texture namespace entries...");
-		if (!scanNamespace("tx", null, unit, wf, unit.texNamespaceIndices))
+		if (!scanNamespace("TX", null, unit, wf, unit.texNamespaceIndices))
 			return false;
 		out.printf("        %d namespace textures.\n", unit.texNamespaceIndices.size());
 		
@@ -617,12 +618,15 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 	private boolean scanNamespace(String name, String equivName, Pattern ignorePattern, WadUnit unit, WadFile wf, CaseInsensitiveHashMap<Integer> map)
 	{
 		// scan patch namespace
-		int start = wf.getIndexOf(name+"_start");
+		int start = wf.getIndexOf(name+"_START");
+		if (start < 0)
+			start = wf.getIndexOf(equivName+"_START");
+		
 		if (start >= 0)
 		{
-			int end = wf.getIndexOf(name+"_end");
+			int end = wf.getIndexOf(name+"_END");
 			if (end < 0)
-				end = wf.getIndexOf(equivName+"_end");
+				end = wf.getIndexOf(equivName+"_END");
 			
 			if (end >= 0)
 			{
@@ -694,10 +698,10 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 					br.close();
 					return false;
 				case STATE_TEXTURES:
-					readAndAddTextures(context, line);
+					readAndAddTextures(context, line.toUpperCase());
 					break;
 				case STATE_FLATS:
-					readAndAddFlats(context, line);
+					readAndAddFlats(context, line.toUpperCase());
 					break;
 			}
 		}
@@ -708,6 +712,12 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 	
 	private void readAndAddTextures(ExtractorContext context, String textureName)
 	{
+		if (!NameUtils.isValidTextureName(textureName))
+		{
+			out.println("ERROR: Texture \""+textureName+"\" has an invalid name. Skipping.");
+			return;
+		}
+		
 		context.textureList.put(textureName);
 		
 		for (WadUnit unit : context.wadPriority)
@@ -767,6 +777,7 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 	/** Searches for the texture to extract. */
 	private WadUnit searchForTexture(Queue<WadUnit> unitQueue, String textureName)
 	{
+		// FIXME: Does not work.
 		for (WadUnit unit : unitQueue)
 		{
 			if (unit.textureSet.contains(textureName))
