@@ -459,6 +459,8 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 		for (CommonTexture<?> ct : textureList1)
 			unit.tex1names.put(ct.getName());
 
+		out.printf("        %d entries in TEXTURE1.\n", textureList1.size());
+
 		try {
 			textureData = wf.getData("TEXTURE2");
 		} catch (WadException e) {
@@ -477,6 +479,7 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 			else
 				textureList2 = DoomTextureList.create(textureData);
 			
+			out.printf("        %d entries in TEXTURE2.\n", textureList2.size());
 			unit.tex2exists = true;
 		}
 		
@@ -496,6 +499,8 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 			return false;
 		}
 		
+		out.printf("        %d entries in PNAMES.\n", patchNames.size());
+
 		if (textureList2 != null)
 			unit.textureSet = new TextureSet(patchNames, textureList1, textureList2);
 		else
