@@ -782,7 +782,6 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 	/** Searches for the texture to extract. */
 	private WadUnit searchForTexture(Queue<WadUnit> unitQueue, String textureName)
 	{
-		// FIXME: Does not work.
 		for (WadUnit unit : unitQueue)
 		{
 			if (unit.textureSet.contains(textureName))
@@ -838,21 +837,21 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 	private boolean extractTextures(ExtractorContext context, ExportSet exportSet)
 	{
 		out.println("    Extracting textures...");
-		for (String texture : context.textureList)
+		for (String textureName : context.textureList)
 		{
 			WadUnit unit = null;
 			
 			// found texture.
-			if ((unit = searchForTexture(context.wadPriority, texture)) != null)
+			if ((unit = searchForTexture(context.wadPriority, textureName)) != null)
 			{
 				// for figuring out if we've found a replaced/added patch.
 				boolean foundPatches = false;
 				
-				TextureSet.Texture entry = unit.textureSet.getTextureByName(texture);
+				TextureSet.Texture entry = unit.textureSet.getTextureByName(textureName);
 				
 				for (int i = 0; i < entry.getPatchCount(); i++)
 				{
-					TextureSet.Texture.Patch p = entry.getPatch(i);
+					TextureSet.Patch p = entry.getPatch(i);
 					String pname = p.getName();
 					
 					// does a matching patch exist?
@@ -876,29 +875,43 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 				}
 
 				// if we've found patches or the texture is new, better extract the texture.
-				if (foundPatches || !exportSet.textureSet.contains(texture))
+				if (foundPatches || !exportSet.textureSet.contains(textureName))
 				{
-					out.printf("        Copying texture %s...\n", texture);
-					exportSet.textureSet.addTexture(entry);
-					exportSet.textureHash.put(texture);
+					out.printf("        Copying texture %s...\n", textureName);
+					
+					// check if potential overwrite.
+					if (exportSet.textureSet.contains(textureName))
+						exportSet.textureSet.removeTextureByName(textureName);
+					
+					TextureSet.Texture newtex = exportSet.textureSet.createTexture(textureName);
+					newtex.setHeight(entry.getHeight());
+					newtex.setWidth(entry.getWidth());
+					for (TextureSet.Patch p : entry)
+					{
+						TextureSet.Patch newpatch = newtex.createPatch(p.getName());
+						newpatch.setOriginX(p.getOriginX());
+						newpatch.setOriginY(p.getOriginY());
+					}
+					
+					exportSet.textureHash.put(textureName);
 				}
 				
 			}
 			// unit not found
-			else if ((unit = searchForNamespaceTexture(context.wadPriority, texture)) != null)
+			else if ((unit = searchForNamespaceTexture(context.wadPriority, textureName)) != null)
 			{
 				// does a matching texture entry exist?
-				if (unit.texNamespaceIndices.containsKey(texture))
+				if (unit.texNamespaceIndices.containsKey(textureName))
 				{
-					Integer pidx = unit.texNamespaceIndices.get(texture);
+					Integer pidx = unit.texNamespaceIndices.get(textureName);
 					if (pidx != null)
 					{
 						try {
-							out.printf("        Extracting namespace texture %s...\n", texture);
-							EntryData data = new EntryData(texture, unit.wad.getData(pidx));
+							out.printf("        Extracting namespace texture %s...\n", textureName);
+							EntryData data = new EntryData(textureName, unit.wad.getData(pidx));
 							exportSet.textureData.add(data);
 						} catch (IOException e) {
-							out.printf("ERROR: %s: Could not read entry %s.\n", unit.wad.getFilePath(), texture);
+							out.printf("ERROR: %s: Could not read entry %s.\n", unit.wad.getFilePath(), textureName);
 							return false;
 						}
 					}
@@ -977,6 +990,9 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 			StrifeTextureList tex2 = context.baseUnit.tex2exists ? new StrifeTextureList() : null;
 			AbstractSet<String> tex1names = context.baseUnit.tex2exists ? context.baseUnit.tex1names : null;
 			GraphicUtils.exportTextureSet(exportSet.textureSet, pnames, tex1, tex2, tex1names);
+			tlist.add(tex1);
+			if (tex2 != null)
+				tlist.add(tex2);
 		}
 		// if not, Doom format.
 		else
@@ -986,6 +1002,9 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 			DoomTextureList tex2 = context.baseUnit.tex2exists ? new DoomTextureList() : null;
 			AbstractSet<String> tex1names = context.baseUnit.tex2exists ? context.baseUnit.tex1names : null;
 			GraphicUtils.exportTextureSet(exportSet.textureSet, pnames, tex1, tex2, tex1names);
+			tlist.add(tex1);
+			if (tex2 != null)
+				tlist.add(tex2);
 		}
 		
 		for (int i = 0; i < tlist.size(); i++)
@@ -1046,7 +1065,7 @@ public class TextureExtractor extends Utility<TextureExtractor.ExtractorContext>
 			data[1 + i] = entries.getByIndex(i).getValue();
 		}
 
-		names[names.length - 1] = namespace + "_START";
+		names[names.length - 1] = namespace + "_END";
 		data[data.length - 1] = new byte[0];
 		
 		wf.addAllData(names, data);
