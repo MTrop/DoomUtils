@@ -16,7 +16,7 @@
 
 	<property name="utility.name" value="utility" />
 	<property name="utility.exeversion" value="9.9.9.9" />
-	<property name="utility.version" value="${build.date}-${utility.exeversion}" />
+	<property name="utility.version" value="${utility.exeversion}" />
 	<property name="utility.package" value="net.mtrop.utility.doom.${utility.name}" />
 	<property name="utility.package.path" value="net/mtrop/utility/doom/${utility.name}" />
 
