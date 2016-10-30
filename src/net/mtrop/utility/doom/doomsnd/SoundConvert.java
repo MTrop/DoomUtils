@@ -11,8 +11,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import net.mtrop.doom.struct.DMXSound;
-
 import com.blackrook.commons.Common;
 import com.blackrook.commons.list.List;
 import com.blackrook.io.files.SoundFileInfo;
@@ -21,6 +19,8 @@ import com.blackrook.utility.Context;
 import com.blackrook.utility.Settings;
 import com.blackrook.utility.Utility;
 import com.blackrook.utility.Version;
+
+import net.mtrop.doom.sound.DMXSound;
 
 /**
  * Converts sound to Doom Format sounds.

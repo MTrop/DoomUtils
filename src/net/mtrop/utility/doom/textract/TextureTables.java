@@ -7,9 +7,9 @@
  ******************************************************************************/
 package net.mtrop.utility.doom.textract;
 
-import net.mtrop.doom.struct.Animated;
-
 import com.blackrook.commons.hash.CaseInsensitiveHashMap;
+
+import net.mtrop.doom.texture.Animated;
 
 /**
  * Texture Extractor tables.
@@ -20,70 +20,70 @@ public interface TextureTables
 	/** All animated entries. */
 	public static final Animated ALL_ANIMATED = new Animated()
 	{{
-		addTexture("BLODGR4", "BLODGR1", 8, true);
-		addTexture("SLADRIP3", "SLADRIP1", 8, true);
-		addTexture("BLODRIP4", "BLODRIP1", 8, true);
-		addTexture("FIREWALL", "FIREWALA", 8, false);
-		addTexture("GSTFONT3", "GSTFONT1", 8, true);
-		addTexture("FIRELAVA", "FIRELAV3", 8, false);
-		addTexture("FIREMAG3", "FIREMAG1", 8, false);
-		addTexture("FIREBLU2", "FIREBLU1", 8, false);
-		addTexture("ROCKRED3", "ROCKRED1", 8, true);
-		addTexture("BFALL4", "BFALL1", 8, false);
-		addTexture("SFALL4", "SFALL1", 8, false);
-		addTexture("WFALL4", "WFALL1", 8, false);
-		addTexture("DBRAIN4", "DBRAIN1", 8, false);
-		addTexture("LAVAFL3", "LAVAFL1", 6, false);
-		addTexture("WATRWAL3", "WATRWAL1", 4, false);
-		addTexture("SCAN08", "SCAN05", 4, false);
-		addTexture("SWTRMG03", "SWTRMG01", 4, false);
-		addTexture("SCAN04", "SCAN01", 4, false);
-		addTexture("COMP04", "COMP01", 4, false);
-		addTexture("COMP08", "COMP05", 6, false);
-		addTexture("COMP12", "COMP09", 11, false);
-		addTexture("COMP16", "COMP13", 12, false);
-		addTexture("COMP20", "COMP17", 12, false);
-		addTexture("COMP24", "COMP21", 12, false);
-		addTexture("COMP28", "COMP25", 12, false);
-		addTexture("COMP32", "COMP29", 12, false);
-		addTexture("COMP37", "COMP33", 12, false);
-		addTexture("COMP41", "COMP38", 12, false);
-		addTexture("COMP49", "COMP42", 10, false);
-		addTexture("BRKGRY16", "BRKGRY13", 10, false);
-		addTexture("BRNSCN04", "BRNSCN01", 10, false);
-		addTexture("CONCRT12", "CONCRT09", 11, false);
-		addTexture("CONCRT25", "CONCRT22", 11, false);
-		addTexture("WALPMP02", "WALPMP01", 16, false);
-		addTexture("WALTEK17", "WALTEK16", 8, false);
-		addTexture("FORCE04", "FORCE01", 4, false);
-		addTexture("FORCE08", "FORCE05", 4, false);
-		addTexture("FAN02", "FAN01", 4, false);
+		addEntry(Animated.texture("BLODGR4", "BLODGR1", 8, true));
+		addEntry(Animated.texture("SLADRIP3", "SLADRIP1", 8, true));
+		addEntry(Animated.texture("BLODRIP4", "BLODRIP1", 8, true));
+		addEntry(Animated.texture("FIREWALL", "FIREWALA", 8, false));
+		addEntry(Animated.texture("GSTFONT3", "GSTFONT1", 8, true));
+		addEntry(Animated.texture("FIRELAVA", "FIRELAV3", 8, false));
+		addEntry(Animated.texture("FIREMAG3", "FIREMAG1", 8, false));
+		addEntry(Animated.texture("FIREBLU2", "FIREBLU1", 8, false));
+		addEntry(Animated.texture("ROCKRED3", "ROCKRED1", 8, true));
+		addEntry(Animated.texture("BFALL4", "BFALL1", 8, false));
+		addEntry(Animated.texture("SFALL4", "SFALL1", 8, false));
+		addEntry(Animated.texture("WFALL4", "WFALL1", 8, false));
+		addEntry(Animated.texture("DBRAIN4", "DBRAIN1", 8, false));
+		addEntry(Animated.texture("LAVAFL3", "LAVAFL1", 6, false));
+		addEntry(Animated.texture("WATRWAL3", "WATRWAL1", 4, false));
+		addEntry(Animated.texture("SCAN08", "SCAN05", 4, false));
+		addEntry(Animated.texture("SWTRMG03", "SWTRMG01", 4, false));
+		addEntry(Animated.texture("SCAN04", "SCAN01", 4, false));
+		addEntry(Animated.texture("COMP04", "COMP01", 4, false));
+		addEntry(Animated.texture("COMP08", "COMP05", 6, false));
+		addEntry(Animated.texture("COMP12", "COMP09", 11, false));
+		addEntry(Animated.texture("COMP16", "COMP13", 12, false));
+		addEntry(Animated.texture("COMP20", "COMP17", 12, false));
+		addEntry(Animated.texture("COMP24", "COMP21", 12, false));
+		addEntry(Animated.texture("COMP28", "COMP25", 12, false));
+		addEntry(Animated.texture("COMP32", "COMP29", 12, false));
+		addEntry(Animated.texture("COMP37", "COMP33", 12, false));
+		addEntry(Animated.texture("COMP41", "COMP38", 12, false));
+		addEntry(Animated.texture("COMP49", "COMP42", 10, false));
+		addEntry(Animated.texture("BRKGRY16", "BRKGRY13", 10, false));
+		addEntry(Animated.texture("BRNSCN04", "BRNSCN01", 10, false));
+		addEntry(Animated.texture("CONCRT12", "CONCRT09", 11, false));
+		addEntry(Animated.texture("CONCRT25", "CONCRT22", 11, false));
+		addEntry(Animated.texture("WALPMP02", "WALPMP01", 16, false));
+		addEntry(Animated.texture("WALTEK17", "WALTEK16", 8, false));
+		addEntry(Animated.texture("FORCE04", "FORCE01", 4, false));
+		addEntry(Animated.texture("FORCE08", "FORCE05", 4, false));
+		addEntry(Animated.texture("FAN02", "FAN01", 4, false));
 		
-		addFlat("NUKAGE3", "NUKAGE1", 8);
-		addFlat("FWATER4", "FWATER1", 8);
-		addFlat("SWATER4", "SWATER1", 8);
-		addFlat("LAVA4", "LAVA1", 8);
-		addFlat("BLOOD3", "BLOOD1", 8);
-		addFlat("RROCK08", "RROCK05", 8);
-		addFlat("SLIME04", "SLIME01", 8);
-		addFlat("SLIME08", "SLIME05", 8);
-		addFlat("SLIME12", "SLIME09", 8);
-		addFlat("FLTWAWA3", "FLTWAWA1", 8);
-		addFlat("FLTSLUD3", "FLTSLUD1", 8);
-		addFlat("FLTTELE4", "FLTTELE1", 6);
-		addFlat("FLTFLWW3", "FLTFLWW1", 9);
-		addFlat("FLTLAVA4", "FLTLAVA1", 8);
-		addFlat("FLATHUH4", "FLATHUH1", 8);
-		addFlat("F_SCANR8", "F_SCANR5", 4);
-		addFlat("F_WATR03", "F_WATR01", 8);
-		addFlat("F_PWATR3", "F_PWATR1", 11);
-		addFlat("F_SCANR4", "F_SCANR1", 4);
-		addFlat("F_VWATR3", "P_VWATR1", 4);
-		addFlat("F_HWATR3", "F_HWATR1", 4);
-		addFlat("F_TELE2", "F_TELE1", 4);
-		addFlat("F_FAN2", "F_FAN1", 4);
-		addFlat("F_CONVY2", "F_CONVY1", 4);
-		addFlat("F_RDALN4", "F_RDALN1", 4);
+		addEntry(Animated.flat("NUKAGE3", "NUKAGE1", 8));
+		addEntry(Animated.flat("FWATER4", "FWATER1", 8));
+		addEntry(Animated.flat("SWATER4", "SWATER1", 8));
+		addEntry(Animated.flat("LAVA4", "LAVA1", 8));
+		addEntry(Animated.flat("BLOOD3", "BLOOD1", 8));
+		addEntry(Animated.flat("RROCK08", "RROCK05", 8));
+		addEntry(Animated.flat("SLIME04", "SLIME01", 8));
+		addEntry(Animated.flat("SLIME08", "SLIME05", 8));
+		addEntry(Animated.flat("SLIME12", "SLIME09", 8));
+		addEntry(Animated.flat("FLTWAWA3", "FLTWAWA1", 8));
+		addEntry(Animated.flat("FLTSLUD3", "FLTSLUD1", 8));
+		addEntry(Animated.flat("FLTTELE4", "FLTTELE1", 6));
+		addEntry(Animated.flat("FLTFLWW3", "FLTFLWW1", 9));
+		addEntry(Animated.flat("FLTLAVA4", "FLTLAVA1", 8));
+		addEntry(Animated.flat("FLATHUH4", "FLATHUH1", 8));
+		addEntry(Animated.flat("F_SCANR8", "F_SCANR5", 4));
+		addEntry(Animated.flat("F_WATR03", "F_WATR01", 8));
+		addEntry(Animated.flat("F_PWATR3", "F_PWATR1", 11));
+		addEntry(Animated.flat("F_SCANR4", "F_SCANR1", 4));
+		addEntry(Animated.flat("F_VWATR3", "P_VWATR1", 4));
+		addEntry(Animated.flat("F_HWATR3", "F_HWATR1", 4));
+		addEntry(Animated.flat("F_TELE2", "F_TELE1", 4));
+		addEntry(Animated.flat("F_FAN2", "F_FAN1", 4));
+		addEntry(Animated.flat("F_CONVY2", "F_CONVY1", 4));
+		addEntry(Animated.flat("F_RDALN4", "F_RDALN1", 4));
 	}};
 	
 	/**
