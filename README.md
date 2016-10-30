@@ -8,13 +8,13 @@ Copyright (c) 2013-2016 Matt Tropiano
 Doom Struct 1.0.0+  
 [https://github.com/MTrop/Doom](https://github.com/MTrop/Doom)
 
-Black Rook Commons 2.16.0+  
+Black Rook Commons 2.31.0+  
 [https://github.com/BlackRookSoftware/Common](https://github.com/BlackRookSoftware/Common)
 
-Black Rook Common I/O 2.4.4+  
+Black Rook Common I/O 2.5.0+  
 [https://github.com/BlackRookSoftware/CommonIO](https://github.com/BlackRookSoftware/CommonIO)
 
-Black Rook Common Lang 2.4.0+  
+Black Rook Common Lang 2.9.0+  
 [https://github.com/BlackRookSoftware/CommonLang](https://github.com/BlackRookSoftware/CommonLang)
 
 Black Rook Utility 2.0.1+  
