@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2013-2016 Matt Tropiano
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+ ******************************************************************************/
 package net.mtrop.utility.doom.palcnvrt;
 
 import java.io.File;
@@ -94,7 +101,7 @@ public class PaletteConvert extends Utility<PaletteConvert.PSContext>
 		
 		int state = 0;
 		
-		List<String> inputFileList = new List<String>(25);
+		List<File> inputFileList = new List<File>(25);
 		
 		// default mode
 		settings.put(SETTING_GRAPHICMODE, SETTING_GRAPHICMODE_PATCHES);
@@ -122,9 +129,11 @@ public class PaletteConvert extends Utility<PaletteConvert.PSContext>
 					else if (arg.equalsIgnoreCase(SWITCH_PATCHES))
 						settings.put(SETTING_GRAPHICMODE, SETTING_GRAPHICMODE_PATCHES);
 					else
-						inputFileList.add(arg);
+					{
+						inputFileList.add(new File(arg));
+					}
 				}
-					break;
+				break;
 				
 				case STATE_PALETTE_SRC_FILE:
 					settings.put(SETTING_PALETTE_SOURCE, arg);
@@ -155,8 +164,9 @@ public class PaletteConvert extends Utility<PaletteConvert.PSContext>
 			}
 		}
 		
-		String[] inputFiles = new String[inputFileList.size()];
+		File[] inputFiles = new File[inputFileList.size()];
 		inputFileList.toArray(inputFiles);
+		inputFiles = Common.explodeFiles(inputFiles);
 		settings.put(SETTING_FILES, inputFiles);
 		
 		return settings;
@@ -546,13 +556,13 @@ public class PaletteConvert extends Utility<PaletteConvert.PSContext>
 	private int convertGraphics(PSContext context, Settings settings)
 	{
 		boolean patch = settings.getString(SETTING_GRAPHICMODE).equals(SETTING_GRAPHICMODE_PATCHES);
-		String[] filePaths = (String[])settings.get(SETTING_FILES);
+		File[] filePaths = (File[])settings.get(SETTING_FILES);
 		int plen = filePaths.length;
 		int count = 0;
 
 		do {
 			
-			File f = new File(filePaths[count]);
+			File f = filePaths[count];
 			out.printf("\r[%3d%%] Converting %s...", (count * 100 / plen), f.getName());
 
 			if (!f.exists())
@@ -573,7 +583,7 @@ public class PaletteConvert extends Utility<PaletteConvert.PSContext>
 	{
 		out.printf("Palette Convert v%s by Matt Tropiano\n", getVersion());
 		out.println("Usage: palcnvrt [files] [type] [srcargs] [trgargs] ");
-		out.println("    [files]  :         Valid Doom graphic files. Accepts wildcards");
+		out.println("    [files]  :         Valid Doom graphic files or a directory name");
 		out.println("                       for multiple files.");
 		out.println();
 		out.println("    [type]   : -patch  If specified, all input files are graphic/patch format.");
@@ -600,7 +610,7 @@ public class PaletteConvert extends Utility<PaletteConvert.PSContext>
 	{
 		int err = 0;
 		
-		String[] filePaths = (String[])settings.get(SETTING_FILES);
+		File[] filePaths = (File[])settings.get(SETTING_FILES);
 		
 		if (filePaths == null || filePaths.length == 0)
 		{

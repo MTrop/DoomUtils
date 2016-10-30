@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013-2014 Matt Tropiano
+ * Copyright (c) 2013-2016 Matt Tropiano
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser Public License v2.1
  * which accompanies this distribution, and is available at
@@ -24,10 +24,10 @@ import net.mtrop.doom.exception.WadException;
 import net.mtrop.doom.map.binary.DoomThing;
 import net.mtrop.doom.map.binary.HexenThing;
 import net.mtrop.doom.map.binary.StrifeThing;
-import net.mtrop.doom.map.udmf.UDMFCommonThingAttributes;
 import net.mtrop.doom.map.udmf.UDMFObject;
 import net.mtrop.doom.map.udmf.UDMFReader;
 import net.mtrop.doom.map.udmf.UDMFTable;
+import net.mtrop.doom.map.udmf.attributes.UDMFCommonThingAttributes;
 import net.mtrop.doom.util.MapUtils;
 
 import com.blackrook.commons.Common;
@@ -48,7 +48,7 @@ import com.blackrook.utility.Version;
  */
 public class ThingSpy extends Utility<ThingSpy.ThingSpyContext>
 {
-	private static final Version VERSION = new Version(1,1,2,0);
+	private static final Version VERSION = new Version(2,0,0,0);
 
 	/** File path. */
 	public static final String SETTING_FILES = "files";

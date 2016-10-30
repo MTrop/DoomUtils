@@ -5,6 +5,7 @@
 	<import file="build-import.xml" />
 
 	<property name="l4jxml.dir" value="launch4j" />
+	<property name="fileset.dir" value="filesets" />
 
 	<property name="txt.dir" value="${build.dir}/txt" />
 	<property name="win32.dir" value="${build.dir}/win32" />
@@ -23,12 +24,23 @@
 	<property name="utility.win32.xml.filename" value="${l4jxml.dir}/${utility.name}.xml" />
 	<property name="utility.jar.filename" value="${project.archive}-${utility.name}.jar" />
 	<property name="utility.jar.one.filename" value="${project.archive}-${utility.name}-standalone.jar" />
+	<property name="utility.jar.one.min.filename" value="${project.archive}-${utility.name}-standalone-min.jar" />
+	<property name="utility.jar.one.fileset" value="${fileset.dir}/${utility.name}-exe-include.txt" />
 	<property name="utility.zip.filename" value="${project.archive}-${utility.name}-${utility.version}.zip" />
 	<property name="utility.zip.one.filename" value="${project.archive}-${utility.name}-standalone-${utility.version}.zip" />
+	<property name="utility.zip.one.min.filename" value="${project.archive}-${utility.name}-standalone-min-${utility.version}.zip" />
 	<property name="utility.zip.src.filename" value="${project.archive}-${utility.name}-src-${utility.version}.zip" />
 	<property name="utility.zip.win32.l4j.filename" value="${project.archive}-${utility.name}-win32-l4j-${utility.version}.zip" />
 		
 	<property name="zip.win32.filename" value="${project.archive}-${build.version}-win32-l4j.zip" />
+
+	<!-- Filesets -->
+	
+	<zipfileset 
+		id="fileset.min" 
+		src="${jar.dir}/${utility.jar.one.filename}" 
+		includesfile="${utility.jar.one.fileset}" 
+	/>
 
 	<!-- Taskdefs -->
 
@@ -80,13 +92,23 @@
 		</jar>
 	</target>
 	
-	<target name="utility.jar.all" depends="utility.jar.one" />
+	<target name="utility.jar.one.min" depends="utility.jar.one" description="Jars up all classes needed to run utility in one standalonem, minified JAR.">
+		<delete file="${jar.dir}/${utility.jar.one.min.filename}" casesensitive="false" />
+		<jar destfile="${jar.dir}/${utility.jar.one.min.filename}">
+			<manifest>
+		    	<attribute name="Main-Class" value="${utility.package}.Main"/>
+            </manifest>
+			<zipfileset refid="fileset.min" />
+		</jar>
+	</target>
+	
+	<target name="utility.jar.all" depends="utility.jar.one, utility.jar.one.min" />
 
-	<target name="utility.win32.l4j" depends="init.win32, utility.jar.one" description="Creates the Launch4J executable for utility.">
+	<target name="utility.win32.l4j" depends="init.win32, utility.jar.one.min" description="Creates the Launch4J executable for utility.">
 		<delete file="${win32.l4j.dir}/${utility.win32.filename}" />
 		<launch4j 
 			configFile="${utility.win32.xml.filename}" 
-			jar="${jar.dir}/${utility.jar.one.filename}"
+			jar="${jar.dir}/${utility.jar.one.min.filename}"
 			outfile="${win32.dir}/${utility.win32.filename}"
 			fileVersion="${utility.exeversion}" 
 			txtFileVersion="${utility.exeversion}" 
@@ -138,6 +160,28 @@
 		</zip>
 	</target>
 	
+	<target name="utility.zip.jar.one.min" depends="init.txt, init.zip, utility.jar.one.min" description="Zips up utility All-in-one JAR.">
+		<delete file="${zip.dir}/${utility.zip.one.min.filename}" casesensitive="false" />
+
+		<delete file="${txt.dir}/${utility.name}.txt" />
+		<copy file="docs/${utility.name}/utility.txt" tofile="${txt.dir}/${utility.name}.txt" />
+		<concat append="true" destfile="${txt.dir}/${utility.name}.txt" >
+			<filelist dir="docs/${utility.name}" files="jar-one.txt" />
+			<filelist dir="docs/append" files="copyright-one.txt" />
+			<filelist dir="docs/append" files="copyright-footer.txt" />
+		</concat>
+		
+		<zip destfile="${zip.dir}/${utility.zip.one.min.filename}">
+			<fileset file="${jar.dir}/${utility.jar.one.min.filename}" />
+		</zip>
+		<zip destfile="${zip.dir}/${utility.zip.one.min.filename}" update="true">
+			<zipfileset dir="${txt.dir}" includes="${utility.name}.txt" prefix="docs/" />
+		</zip>
+		<zip destfile="${zip.dir}/${utility.zip.one.min.filename}" update="true">
+			<zipfileset dir="${basedir}/docs/all" includes="*.txt" prefix="docs/" />
+		</zip>
+	</target>
+	
 	<target name="utility.zip.win32.l4j" depends="init.txt, init.zip, utility.win32.l4j" description="Zips up utility Win32 Launch4J EXE.">
 		<delete file="${zip.dir}/${utility.zip.win32.l4j.filename}" casesensitive="false" />
 
@@ -166,13 +210,15 @@
 	<target name="zip.utils" depends="
 		utility.zip.src, 
 		utility.zip.jar.one, 
+		utility.zip.jar.one.min, 
 		utility.zip.win32.l4j 
 		" />
 	
 	<target name="jar.utils" depends="
 		compile, 
 		utility.jar, 
-		utility.jar.one 
+		utility.jar.one,
+		utility.jar.one.min 
 		">
 	</target>
 

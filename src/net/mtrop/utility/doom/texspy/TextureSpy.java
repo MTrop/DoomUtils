@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013-2014 Matt Tropiano
+ * Copyright (c) 2013-2016 Matt Tropiano
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser Public License v2.1
  * which accompanies this distribution, and is available at
@@ -24,11 +24,11 @@ import net.mtrop.doom.enums.MapFormat;
 import net.mtrop.doom.exception.WadException;
 import net.mtrop.doom.map.binary.DoomSector;
 import net.mtrop.doom.map.binary.DoomSidedef;
-import net.mtrop.doom.map.udmf.UDMFCommonSectorAttributes;
-import net.mtrop.doom.map.udmf.UDMFCommonSidedefAttributes;
 import net.mtrop.doom.map.udmf.UDMFObject;
 import net.mtrop.doom.map.udmf.UDMFReader;
 import net.mtrop.doom.map.udmf.UDMFTable;
+import net.mtrop.doom.map.udmf.attributes.UDMFCommonSectorAttributes;
+import net.mtrop.doom.map.udmf.attributes.UDMFCommonSidedefAttributes;
 import net.mtrop.doom.util.MapUtils;
 import net.mtrop.doom.util.NameUtils;
 
@@ -47,7 +47,7 @@ import com.blackrook.utility.Version;
  */
 public class TextureSpy extends Utility<TextureSpy.TextureSpyContext>
 {
-	private static final Version VERSION = new Version(1,0,1,0);
+	private static final Version VERSION = new Version(2,0,0,0);
 
 	/** Output type setting key. */
 	public static final String SETTING_OUTPUT_TEXTURE = "outputtex";

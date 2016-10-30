@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013-2014 Matt Tropiano
+ * Copyright (c) 2013-2016 Matt Tropiano
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser Public License v2.1
  * which accompanies this distribution, and is available at
@@ -35,7 +35,7 @@ import com.blackrook.utility.Version;
  */
 public class MapCount extends Utility<MapCount.MapCountContext>
 {
-	private static final Version VERSION = new Version(1,0,0,0);
+	private static final Version VERSION = new Version(2,0,0,0);
 
 	/** File path. */
 	public static final String SETTING_FILES = "files";
