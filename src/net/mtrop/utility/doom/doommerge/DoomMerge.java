@@ -34,7 +34,7 @@ import com.blackrook.utility.Version;
  */
 public class DoomMerge extends Utility<DoomMerge.MergeContext>
 {
-	private static final Version VERSION = new Version(2,0,0,0);
+	private static final Version VERSION = new Version(2,0,1,0);
 	
 	/**
 	 * Program context.
