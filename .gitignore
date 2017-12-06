@@ -1,5 +1,6 @@
 /bin
 /build
+/deps
 /.idea
 build.properties
 versions.properties
@@ -9,3 +10,5 @@ versions.properties
 *.ipr
 *.iml
 *.iws
+*.cmd
+*.sh

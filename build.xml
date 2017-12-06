@@ -41,6 +41,60 @@
 	<property name="project.classpath" value="${common.lib}${S}${common.io.lib}${S}${common.lang.lib}${S}${doom.lib}${S}${utility.lib}" />
 	<property name="project.javadoc.packages" value="" />
 
+	<import file="build-import.xml" />
+	<import file="build-dependencies.xml" />
+
+	<target name="dependency.common">
+		<git-export repository="https://github.com/BlackRookSoftware/Common" dest="${dependencies.dir}/Common" />
+		<ant antfile="${dependencies.dir}/Common/build.xml" useNativeBasedir="true" inheritAll="false" target="compile" />
+	</target>
+	<target name="dependency.commonio">
+		<git-export repository="https://github.com/BlackRookSoftware/CommonIO" dest="${dependencies.dir}/CommonIO" />
+		<ant antfile="${dependencies.dir}/CommonIO/build.xml" useNativeBasedir="true" inheritAll="false" target="compile" />
+	</target>
+	<target name="dependency.commonlang">
+		<git-export repository="https://github.com/BlackRookSoftware/CommonLang" dest="${dependencies.dir}/CommonLang" />
+		<ant antfile="${dependencies.dir}/CommonLang/build.xml" useNativeBasedir="true" inheritAll="false" target="compile" />
+	</target>
+	<target name="dependency.utility">
+		<git-export repository="https://github.com/BlackRookSoftware/Utility" dest="${dependencies.dir}/Utility" />
+		<ant antfile="${dependencies.dir}/Utility/build.xml" useNativeBasedir="true" inheritAll="false" target="compile" />
+	</target>
+	<target name="dependency.doom">
+		<git-export repository="https://github.com/MTrop/Doom" dest="${dependencies.dir}/Doom" />
+		<ant antfile="${dependencies.dir}/Doom/build.xml" useNativeBasedir="true" inheritAll="false" target="compile" />
+	</target>
+	<target name="dependency.launch4j.clone">
+		<git-export repository="https://git.code.sf.net/p/launch4j/git" dest="${dependencies.dir}/launch4j" />
+	</target>
+	<target name="dependency.launch4j.win32" if="${os.isWindows}">
+		<ant antfile="${dependencies.dir}/launch4j/build-private.xml" useNativeBasedir="true" inheritAll="false" target="binutils-win32" />
+		<ant antfile="${dependencies.dir}/launch4j/build-private.xml" useNativeBasedir="true" inheritAll="false" target="jar" />
+	</target>
+	<target name="dependency.launch4j.linux32" if="${os.isLinux32}">
+		<ant antfile="${dependencies.dir}/launch4j/build-private.xml" useNativeBasedir="true" inheritAll="false" target="binutils-linux" />
+		<ant antfile="${dependencies.dir}/launch4j/build-private.xml" useNativeBasedir="true" inheritAll="false" target="jar" />
+	</target>
+	<target name="dependency.launch4j.linux64" if="${os.isLinux64}">
+		<ant antfile="${dependencies.dir}/launch4j/build-private.xml" useNativeBasedir="true" inheritAll="false" target="binutils-linux-x64" />
+		<ant antfile="${dependencies.dir}/launch4j/build-private.xml" useNativeBasedir="true" inheritAll="false" target="jar" />
+	</target>
+	<target name="dependency.launch4j.osx32" if="${os.isOSX}">
+		<ant antfile="${dependencies.dir}/launch4j/build-private.xml" useNativeBasedir="true" inheritAll="false" target="binutils-macosx-x86" />
+		<ant antfile="${dependencies.dir}/launch4j/build-private.xml" useNativeBasedir="true" inheritAll="false" target="jar" />
+	</target>
+	<target name="dependency.launch4j" depends="dependency.launch4j.clone, get.os, dependency.launch4j.win32, dependency.launch4j.linux32, dependency.launch4j.linux64, dependency.launch4j.osx32">
+	</target>
+	<target name="dependency.properties">
+		<echo message="Writing to build.properties...." />
+		<echo message="dev.base=${dependencies.dir}&#10;" file="build.properties" append="true" />
+		<echo message="libs.base=${dependencies.dir}&#10;" file="build.properties" append="true" />
+		<echo message="launch4j.lib.dir=${dependencies.dir}/launch4j&#10;" file="build.properties" append="true" />
+	</target>
+
+	<target name="dependencies" depends="init.dependencies, dependency.common, dependency.commonio, dependency.commonlang, dependency.utility, dependency.doom, dependency.launch4j, dependency.properties" description="Downloads and compiles the dependencies.">
+	</target>
+
 	<target name="clean.build">
 		<delete dir="${build.base}" includeemptydirs="true" casesensitive="false" /> 
 	</target>

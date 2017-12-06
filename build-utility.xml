@@ -42,15 +42,15 @@
 		includesfile="${utility.jar.one.fileset}" 
 	/>
 
-	<!-- Taskdefs -->
-
-	<taskdef 
-		name="launch4j"
-		classname="net.sf.launch4j.ant.Launch4jTask"
-		classpath="${launch4j.lib.jar}${S}${launch4j.xstream.lib.jar}"
-	/>
-	
 	<!-- Utility Targets -->
+	
+	<target name="win32.task">
+		<taskdef 
+			name="launch4j"
+			classname="net.sf.launch4j.ant.Launch4jTask"
+			classpath="${launch4j.lib.jar}${S}${launch4j.xstream.lib.jar}"
+		/>
+	</target>
 	
 	<target name="clean.win32" description="Cleans up the Launch4J executables.">
 		<delete dir="${win32.dir}" includeemptydirs="true" casesensitive="false" /> 
@@ -104,7 +104,7 @@
 	
 	<target name="utility.jar.all" depends="utility.jar.one, utility.jar.one.min" />
 
-	<target name="utility.win32.l4j" depends="init.win32, utility.jar.one.min" description="Creates the Launch4J executable for utility.">
+	<target name="utility.win32.l4j" depends="init.win32, win32.task, utility.jar.one.min" description="Creates the Launch4J executable for utility.">
 		<delete file="${win32.l4j.dir}/${utility.win32.filename}" />
 		<launch4j 
 			configFile="${utility.win32.xml.filename}" 

@@ -37,6 +37,14 @@ This contains a series of utilities requested by people on Doomworld. Some are m
 - **TexSpy** - Scans for used texture names in maps.
 - **TEXtract** - Extracts textures from texture packs. Detects animated texture names (both built-in and from ANIMATED/SWITCHES).
 
+### Compiling with Ant
+
+To download the dependencies for this project (if you didn't set that up yourself already), type:
+
+	ant dependencies
+
+A *build.properties* file will be created/appended to with the *dev.base* property set.
+
 ### Other
 
 These programs and the accompanying materials
