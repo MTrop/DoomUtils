@@ -10,7 +10,7 @@
         Matt Tropiano - initial API and implementation
  -->
 <!DOCTYPE project>
-<project name="dependencies" default="compile">
+<project name="dependencies">
 
 	<!-- Folders and File Names -->
 

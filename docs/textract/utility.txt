@@ -19,6 +19,9 @@ OSX).
 ..............................................................................
 [CHANGELOG]
 
+2.0.1
+	New library, fixed bugs.
+
 0.9.7BETA
 	Asymmetrical lump markers used to denote flats and patches are now 
 		detectable.
