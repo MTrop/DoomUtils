@@ -44,6 +44,7 @@
 
 	<!-- Utility Targets -->
 	
+	<!--
 	<target name="win32.task">
 		<taskdef 
 			name="launch4j"
@@ -51,6 +52,7 @@
 			classpath="${launch4j.lib.jar}${S}${launch4j.xstream.lib.jar}"
 		/>
 	</target>
+	-->
 	
 	<target name="clean.win32" description="Cleans up the Launch4J executables.">
 		<delete dir="${win32.dir}" includeemptydirs="true" casesensitive="false" /> 
@@ -104,6 +106,7 @@
 	
 	<target name="utility.jar.all" depends="utility.jar.one, utility.jar.one.min" />
 
+	<!--
 	<target name="utility.win32.l4j" depends="init.win32, win32.task, utility.jar.one.min" description="Creates the Launch4J executable for utility.">
 		<delete file="${win32.l4j.dir}/${utility.win32.filename}" />
 		<launch4j 
@@ -116,6 +119,7 @@
 			txtProductVersion="${utility.exeversion}"
 		/>
 	</target>
+	-->
 	
 	<target name="utility.zip.src" depends="init.txt, init.zip" description="Zips up utility source code.">
 		<delete file="${zip.dir}/${utility.zip.src.filename}" casesensitive="false" />
@@ -182,6 +186,7 @@
 		</zip>
 	</target>
 	
+	<!--
 	<target name="utility.zip.win32.l4j" depends="init.txt, init.zip, utility.win32.l4j" description="Zips up utility Win32 Launch4J EXE.">
 		<delete file="${zip.dir}/${utility.zip.win32.l4j.filename}" casesensitive="false" />
 
@@ -204,15 +209,17 @@
 			<zipfileset dir="${basedir}/docs/all" includes="*.txt" prefix="docs/" />
 		</zip>
 	</target>
+	-->
 	
 	<!-- Utility Properties -->
 	
 	<target name="zip.utils" depends="
 		utility.zip.src, 
 		utility.zip.jar.one, 
-		utility.zip.jar.one.min, 
-		utility.zip.win32.l4j 
+		utility.zip.jar.one.min 
 		" />
+
+	<!-- utility.zip.win32.l4j --> 
 	
 	<target name="jar.utils" depends="
 		compile, 
