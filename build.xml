@@ -65,7 +65,7 @@
 		<ant antfile="${dependencies.dir}/Doom/build.xml" useNativeBasedir="true" inheritAll="false" target="compile" />
 	</target>
 	<target name="dependency.launch4j.clone">
-		<git-export repository="https://git.code.sf.net/p/launch4j/git" dest="${dependencies.dir}/launch4j" />
+		<git-export repository="https://github.com/mirror/launch4j" dest="${dependencies.dir}/launch4j" />
 	</target>
 	<target name="dependency.launch4j.win32" if="${os.isWindows}">
 		<ant antfile="${dependencies.dir}/launch4j/build-private.xml" useNativeBasedir="true" inheritAll="false" target="binutils-win32" />

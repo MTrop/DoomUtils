@@ -34,6 +34,8 @@ com/blackrook/lang/Lexer.class
 com/blackrook/lang/LexerKernel.class
 com/blackrook/lang/Parser.class
 com/blackrook/lang/ParserException.class
+com/blackrook/lang/ReaderStack.class
+com/blackrook/lang/ReaderStack$*.class
 com/blackrook/utility/Context.class
 com/blackrook/utility/Settings.class
 com/blackrook/utility/Utility.class
